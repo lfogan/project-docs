@@ -3,9 +3,11 @@
 {{PRODUCT_PARAGRAPH}}
 
 <!-- Always-loaded contract. Budget {{BUDGET_CLAUDE}} bytes (raises: none — a raise
-     must state what was pruned first and be listed here). Rules live here, one
-     line each; stories live once in CHANGELOG.md and are pointed to. NOT here:
-     task state (PLAN.md), history (CHANGELOG.md), full decisions (LEDGER.md). -->
+     must state what was pruned first and be listed here). {{BUDGET_CLAUDE}} is
+     a ceiling, not a target — see references/methodology.md. Rules live here,
+     one line each; stories live once in CHANGELOG.md and are pointed to. NOT
+     here: task state (PLAN.md), history (CHANGELOG.md), full decisions
+     (LEDGER.md). -->
 
 ## Read order
 

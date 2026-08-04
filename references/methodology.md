@@ -58,5 +58,9 @@ level care. Never paste unreviewed external text into CLAUDE.md or docs/notes/.
 
 The default CLAUDE.md budget shipped by SKILL.md is the measured rules-only
 residue of PocketScript's real 97 KB contract (+30% headroom), not a guess.
+The number is 45000 bytes, measured from an extreme-rule-density outlier
+(LGPL legal text, a native pipeline, 42 Active ledger rows). Treat it as a
+ceiling, not a target — a fresh project's CLAUDE.md landing near it on day
+one is diagnostic of a problem, not compliance.
 Measurement: ../docs/2026-08-04-budget-backtest.md. Re-run the method on any
 project whose shape differs wildly and set the budget from YOUR number.
