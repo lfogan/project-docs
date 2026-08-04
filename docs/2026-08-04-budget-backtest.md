@@ -43,6 +43,20 @@ Shipping default {{BUDGET_CLAUDE}} = 45000 bytes.
 Sensitivity — the estimate's one real free variable is the per-rule price.
 121 of the residue's units are prose-priced at 150 B; the other sections are
 capped or structurally measured. Repricing those 121 units across the allowed
-100–200 B band moves residue to 24940 (at 100) or 37040 (at 200), giving a
-budget of 40000 or 50000 respectively. 45000 is the midpoint result and the
-number tasks 2, 3, 7 and 8 consume.
+100–200 B band moves residue to 24940 (at 100) or 37040 (at 200). Running each
+through this document's own formula — x1.3 first, then round up to the next
+5000 — gives 24940 x 1.3 = 32422, which rounds up to **35000**; and
+37040 x 1.3 = 48152, which rounds up to **50000**. The band is therefore
+**35000–50000**.
+
+45000 is **not** the midpoint of that band. The midpoint is 42500, which the
+formula can never emit at all, since it only produces multiples of 5000. What
+is true: 30990 is exactly the midpoint of the *residue* band, but the round-up
+step is non-linear, so a midpoint residue lands one step above the midpoint
+budget. 45000 is one step high, not central.
+
+Sharper, and the thing to actually carry forward: 30990 clears the threshold
+for 45000 by only **220 bytes (0.71%)**. Any residue of 30769 or below ships
+40000 instead. This result sits one small estimation error away from moving a
+whole 5 KB step, and the per-rule price is what would move it. 45000 remains
+the number tasks 2, 3, 7 and 8 consume.
