@@ -15,37 +15,54 @@ for f_b in "CLAUDE.md $BUDGET_CLAUDE" "PLAN.md $BUDGET_PLAN"; do
   fi
 done
 
-# 2. unfilled template tokens
+# 2. unfilled template tokens: any surviving {{...}}, not just identifier-
+#    shaped ones — reports every distinct token in a file in one line, not
+#    one per lint round.
 for f in CLAUDE.md PLAN.md CHANGELOG.md LEDGER.md TARGETS.md AGENTS.md; do
-  [ -f "$f" ] && grep -n "{{[A-Za-z_]*}}" "$f" >/dev/null 2>&1 && note "unfilled token in $f: $(grep -o '{{[A-Za-z_]*}}' "$f" | head -1)"
+  [ -f "$f" ] || continue
+  toks=$(grep -o '{{[^}]*}}' "$f" 2>/dev/null | sort -u | tr '\n' ' ' | sed 's/ *$//')
+  [ -n "$toks" ] && note "unfilled token in $f: $toks"
 done
 
-# 3. pointers resolve to a REAL target: "→ CL YYYY-MM-DD (slug)" needs an entry
-#    line "- YYYY-MM-DD slug" in CHANGELOG*.md, or a docs/notes/ file whose
-#    name or "# " heading carries the slug. LEDGER.md is NOT a target: pointer
-#    text inside its rows would self-resolve dead pointers.
+# 3. pointers resolve to a REAL target: "→ CL YYYY-MM-DD (slug)" needs an
+#    entry LINE "- YYYY-MM-DD slug " in CHANGELOG*.md, or a docs/notes/ file
+#    following the docs/notes/YYYY-MM-DD-<slug>.md convention whose name or
+#    "# " heading carries the slug — the date always comes from that file's
+#    own name, never from the slug text alone. LEDGER.md is NOT a resolution
+#    target: pointer text inside its own rows would self-resolve dead
+#    pointers. Uses command substitution (not a trailing pipeline subshell)
+#    so failure propagates on every shell, including lastpipe ones.
 for f in CLAUDE.md PLAN.md LEDGER.md TARGETS.md; do
   [ -f "$f" ] || continue
-  grep -o "→ CL [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] ([a-z0-9-]*)" "$f" 2>/dev/null |
-  while IFS= read -r p; do
+  out=$(grep -o "→ CL [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] ([a-z0-9-]*)" "$f" 2>/dev/null | while IFS= read -r p; do
     d=$(printf '%s' "$p" | sed 's/→ CL \([0-9-]*\) .*/\1/')
     s=$(printf '%s' "$p" | sed 's/.*(\(.*\))/\1/')
-    if ! grep -q -- "- $d $s" CHANGELOG*.md 2>/dev/null \
-       && ! { ls docs/notes 2>/dev/null | grep -q -- "$s"; } \
-       && ! grep -q -- "^# .*$s" docs/notes/*.md 2>/dev/null; then
-      echo "doc-lint: unresolved pointer in $f: $p"
-    fi
-  done | sort -u | { any=0; while IFS= read -r l; do echo "$l"; any=1; done; [ "$any" -eq 1 ] && exit 9; exit 0; } || fail=1
+    resolved=0
+    grep -q "^- $d $s " CHANGELOG*.md 2>/dev/null && resolved=1
+    for nf in docs/notes/"$d"-*.md; do
+      [ -f "$nf" ] || continue
+      case "$nf" in *"$s"*) resolved=1 ;; esac
+      grep -q "^# .*$s" "$nf" 2>/dev/null && resolved=1
+    done
+    [ "$resolved" -eq 0 ] && echo "doc-lint: unresolved pointer in $f: $p"
+  done | sort -u)
+  [ -n "$out" ] && { printf '%s\n' "$out"; fail=1; }
 done
 
-# 4. every CLAUDE.md extract "#N:" has a LEDGER.md row "| N |"
+# 4. every CLAUDE.md extract "#N:" has a LEDGER.md row "| N |". Uses command
+#    substitution for the same cross-shell reason as check 3.
 if [ -f CLAUDE.md ] && [ -f LEDGER.md ]; then
-  grep -o "^#[0-9]*:" CLAUDE.md 2>/dev/null | tr -d '#:' | while IFS= read -r n; do
+  out=$(grep -o "^#[0-9]*:" CLAUDE.md 2>/dev/null | tr -d '#:' | while IFS= read -r n; do
     grep -q "^| $n |" LEDGER.md || echo "doc-lint: extract #$n has no LEDGER.md row"
-  done | { any=0; while IFS= read -r l; do echo "$l"; any=1; done; [ "$any" -eq 1 ] && exit 9; exit 0; } || fail=1
+  done)
+  [ -n "$out" ] && { printf '%s\n' "$out"; fail=1; }
 fi
 
 # 5. maintenance block present
 [ -f CLAUDE.md ] && ! grep -q "^## Maintenance" CLAUDE.md && note "maintenance block missing from CLAUDE.md"
+
+# 6. CLAUDE.md must exist — an empty or botched generation must not lint
+#    clean just because every other check above is guarded by [ -f ... ].
+[ -f CLAUDE.md ] || note "CLAUDE.md is missing"
 
 exit "$fail"
