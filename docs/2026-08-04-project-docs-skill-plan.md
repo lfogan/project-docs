@@ -313,7 +313,8 @@ git add scripts/ tests/ && git commit -m "feat: doc-lint.sh with fixture-project
 ## Critical Constraints
 
 <!-- Shipping blockers. Terse imperative, one line each. A constraint whose
-     story has been pruned MUST carry a pointer (→ CL date (slug)). -->
+     story has been pruned MUST carry a pointer of the form
+     → CL YYYY-MM-DD (<slug>) -->
 {{CONSTRAINTS}}
 
 ## Tech Stack (locked)
