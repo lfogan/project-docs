@@ -6,6 +6,10 @@ A Claude Code skill that generates a system for project documentation: a rules f
 
 CLAUDE.md files start small and grow without limit. Rules pile up next to the stories that explain them, decisions get written down two or three times with slightly different wording, and the file every session reads before doing anything becomes tens of thousands of bytes of prose. One real, shipped project's contract file reached about 100KB this way.
 
+Size matters here. `CLAUDE.md` is read in full at the start of every session, and again after a long conversation is compacted. A skill costs almost nothing until invoked, but the contract file is always loaded, so every byte in it is paid for on every task in every session, relevant or not.
+
+The cost is not just tokens. A rule competes for attention with whatever surrounds it, so a constraint buried in tens of thousands of bytes of narrative is followed less reliably than the same constraint in a short file.
+
 This skill splits that single file into pieces, one home per kind of information, so growth in one piece never bloats the file that loads every session.
 
 ## What it generates
@@ -29,11 +33,25 @@ Rules stay inline in `CLAUDE.md`, one line each. Stories, meaning the reasoning 
 
 In full mode the decision log lives in its own file, `LEDGER.md`, so it can grow to dozens of numbered entries without touching the byte budget of the file every session loads.
 
-The default `CLAUDE.md` budget was measured, not guessed: taken from a real, shipped project's contract file, stripped down to its rules-only content, with headroom added. It ships as a ceiling, not a target.
-
 `scripts/doc-lint.sh` checks byte budgets, unfilled template placeholders, broken pointers, and decision extracts with no matching ledger row. It needs nothing beyond a POSIX shell, grep, sed, and wc, and runs in about two seconds.
 
 `CHANGELOG.md` is append-only. The only edits allowed are redacting a secret and rotating old entries into an archive once the file grows past budget.
+
+## The budget
+
+Two files carry a byte budget, because two files are always loaded: `CLAUDE.md` at 45,000 bytes and `PLAN.md` at 80,000. Everything else is read on demand, so it is left unbudgeted and free to grow.
+
+The 45,000 comes out of a measurement. The origin project's contract file was 97,699 bytes. Stripped to rules-only content, with each surviving rule priced at 150 bytes and the narrative moved out to the changelog and ledger, it came to 30,990 bytes. Add 30% headroom, round up to the next 5KB, and the result is 45,000. The soft number in that is the per-rule price. Reprice across the plausible 100 to 200 byte band and the answer moves between 35,000 and 50,000, so 45,000 falls inside the band, one step above its midpoint.
+
+That project was unusually rule-dense: LGPL licence text that cannot legally be compressed, a native build pipeline, and 42 active decisions. So 45,000 is a ceiling, not a target. A fresh project whose `CLAUDE.md` lands near it on day one is already carrying story that belongs somewhere else.
+
+Override it for a project by editing the `BUDGET_CLAUDE` line in the generated `scripts/doc-lint.sh`, or for a single run with an environment variable:
+
+```bash
+BUDGET_CLAUDE=30000 sh scripts/doc-lint.sh
+```
+
+If your project's shape is very different, run the same distillation against your own contract file and set the budget from your number. The method is in `references/methodology.md`, the full worked measurement in `docs/2026-08-04-budget-backtest.md`.
 
 ## Install
 
