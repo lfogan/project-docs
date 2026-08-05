@@ -37,7 +37,7 @@ The default `CLAUDE.md` budget was measured, not guessed: taken from a real, shi
 
 ## Using it
 
-Say "set up project docs" at the start of a project, or on an existing repo to retrofit it. The skill asks six questions: scale (lite or full), a one-paragraph product description, non-negotiable constraints, locked tech decisions, optional modules (full mode only), and what counts as verified evidence on this project.
+Say "set up project docs" at the start of a project, or on an existing repo to retrofit it, or run `/project-docs` directly. The skill asks six questions: scale (lite or full), a one-paragraph product description, non-negotiable constraints, locked tech decisions, optional modules (full mode only), and what counts as verified evidence on this project.
 
 If any target file already exists, the skill switches to retrofit mode and asks before touching each one, file by file.
 
