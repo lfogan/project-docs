@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Working directory for ALL tasks: `~/.claude/skills/project-docs/` (Windows: `C:\Users\lucas\.claude\skills\project-docs\`). The PocketScript repo is READ-ONLY (Task 1 reads its CLAUDE.md; nothing ever writes there).
+- Working directory for ALL tasks: `~/.claude/skills/project-docs/` (Windows: `C:\Users\lucas\.claude\skills\project-docs\`). The origin project's repo is READ-ONLY (Task 1 reads its CLAUDE.md; nothing ever writes there).
 - `{{TOKEN}}` is the template placeholder syntax; lint must fail on any surviving `{{...}}` in generated files.
 - CHANGELOG entry format (exact): `- YYYY-MM-DD <kebab-slug> — <summary>.` — slug kebab-case, unique within its date.
 - Pointer format (exact): `→ CL YYYY-MM-DD (<slug>)`.
@@ -26,7 +26,7 @@
 
 **Files:**
 - Create: `.gitignore`, `docs/2026-08-04-budget-backtest.md`
-- Read only: `C:\Users\lucas\Documents\dev\projects\pocketscript\CLAUDE.md`
+- Read only: the origin project's own `CLAUDE.md` (path known to the operator running this backtest)
 
 **Interfaces:**
 - Produces: the measured default byte budget `{{BUDGET_CLAUDE}}` (a concrete integer, e.g. `28000`), recorded in `docs/2026-08-04-budget-backtest.md` under heading `## Result`. Tasks 2, 3, 7, and 8 consume this number.
@@ -39,19 +39,19 @@ printf 'tests/tmp/\n' > .gitignore
 git add .gitignore docs/ && git commit -m "chore: init project-docs skill repo with design spec + plan"
 ```
 
-- [ ] **Step 2: Measure PocketScript's CLAUDE.md per section**
+- [ ] **Step 2: Measure the origin project's CLAUDE.md per section**
 
-Read `C:\Users\lucas\Documents\dev\projects\pocketscript\CLAUDE.md` section by section (`## ` headings). For each section record: (a) current bytes, (b) estimated rules-only residue after applying spec rule 8 — count every terse imperative the section would keep inline (1 line ≈ 100–200 bytes each) plus table skeletons; everything narrative (histories, verification stories, amendment sagas, "why we rejected X" prose) counts as pruned. For the Deviation Ledger specifically: residue = (count of Active rows) × 200 bytes (the extract cap), since full rows move to LEDGER.md.
+Read the origin project's own `CLAUDE.md` section by section (`## ` headings). For each section record: (a) current bytes, (b) estimated rules-only residue after applying spec rule 8 — count every terse imperative the section would keep inline (1 line ≈ 100–200 bytes each) plus table skeletons; everything narrative (histories, verification stories, amendment sagas, "why we rejected X" prose) counts as pruned. For the Deviation Ledger specifically: residue = (count of Active rows) × 200 bytes (the extract cap), since full rows move to LEDGER.md.
 
 - [ ] **Step 3: Write the backtest doc**
 
 `docs/2026-08-04-budget-backtest.md`, exactly this structure:
 
 ```markdown
-# Budget backtest — PocketScript CLAUDE.md distillation (read-only)
+# Budget backtest — origin project CLAUDE.md distillation (read-only)
 
-Method: spec rev-2 rule 8 applied on paper to every section of PocketScript's
-real CLAUDE.md (97 KB, 2026-08-04 state). Rules stay inline; stories priced as
+Method: spec rev-2 rule 8 applied on paper to every section of the origin
+project's real CLAUDE.md (97 KB, 2026-08-04 state). Rules stay inline; stories priced as
 pruned to CHANGELOG/LEDGER/notes. Ledger priced at 200 bytes per Active row.
 
 ## Per-section table
@@ -71,7 +71,7 @@ Fill every row and both Result numbers from Step 2's measurements. No estimates 
 - [ ] **Step 4: Sanity-check the result**
 
 Run: `grep -c "^| " docs/2026-08-04-budget-backtest.md`
-Expected: row count ≥ 12 — that is 10+ data rows (PocketScript has 10+ `##` sections) PLUS the table's header and separator rows, which `^| ` also matches. Fewer means sections were skipped — go back.
+Expected: row count ≥ 12 — that is 10+ data rows (the origin project has 10+ `##` sections) PLUS the table's header and separator rows, which `^| ` also matches. Fewer means sections were skipped — go back.
 Also verify `## Result` contains two concrete integers (no `<`/`>` brackets remain): `grep -E "[0-9]{4,}" docs/2026-08-04-budget-backtest.md | head -3` shows numbers.
 
 - [ ] **Step 5: Commit**
@@ -572,7 +572,7 @@ explains why they are shaped that way, for generation time and for humans.
 
 ## Why this shape
 
-Origin: PocketScript (2026), a full Android app build run agentically. Its
+Origin: a full Android app build (2026), run agentically. Its
 four-file system worked but its always-loaded contract grew to 97 KB because
 stories (histories, amendment sagas, verification narratives) lived inline
 beside the rules, and the same story was retold in a ledger row, a changelog
@@ -585,12 +585,13 @@ pass + 5-persona council review, both applied).
 
 ## Rule vs story — worked example
 
-Ledger row as PocketScript wrote it (condensed): 900 words on watermark copy,
-approval dates, review findings, a fix narrative. As this system writes it:
+Ledger row as the origin project wrote it (condensed): several hundred words
+on watermark copy, approval dates, review findings, a fix narrative. As this
+system writes it:
 
-- LEDGER.md row: `| 28 | Active·amended 2026-07-16 | Free-tier burned video carries a "PocketScript" watermark, ~25% transparency, bottom-right | sell polish, not capability; free clips advertise the app | → CL 2026-07-13 (watermark-free-tier), → CL 2026-07-16 (watermark-text-shortened) |`
-- CLAUDE.md extract: `#28: free-tier burns carry the "PocketScript" watermark → CL 2026-07-13 (watermark-free-tier)`
-- The 900 words: two CHANGELOG entries, written once, grep-reachable.
+- LEDGER.md row: `| 28 | Active·amended 2026-07-16 | Free-tier burned video carries a small text watermark naming the app, ~25% transparency, bottom-right | sell polish, not capability; free clips advertise the app | → CL 2026-07-13 (watermark-free-tier), → CL 2026-07-16 (watermark-text-shortened) |`
+- CLAUDE.md extract: `#28: free-tier burns carry a watermark naming the app → CL 2026-07-13 (watermark-free-tier)`
+- The several hundred words: two CHANGELOG entries, written once, grep-reachable.
 
 ## Spec sections
 
@@ -624,7 +625,7 @@ level care. Never paste unreviewed external text into CLAUDE.md or docs/notes/.
 ## Budget provenance
 
 The default CLAUDE.md budget shipped by SKILL.md is the measured rules-only
-residue of PocketScript's real 97 KB contract (+30% headroom), not a guess.
+residue of the origin project's real 97 KB contract (+30% headroom), not a guess.
 Measurement: ../docs/2026-08-04-budget-backtest.md. Re-run the method on any
 project whose shape differs wildly and set the budget from YOUR number.
 ```

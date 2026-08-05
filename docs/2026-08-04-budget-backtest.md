@@ -1,7 +1,7 @@
-# Budget backtest — PocketScript CLAUDE.md distillation (read-only)
+# Budget backtest — origin project CLAUDE.md distillation (read-only)
 
-Method: spec rev-2 rule 8 applied on paper to every section of PocketScript's
-real CLAUDE.md (97 KB, 2026-08-04 state). Rules stay inline; stories priced as
+Method: spec rev-2 rule 8 applied on paper to every section of the origin
+project's real CLAUDE.md (97 KB, 2026-08-04 state). Rules stay inline; stories priced as
 pruned to CHANGELOG/LEDGER/notes. Ledger priced at 200 bytes per Active row.
 
 Pricing conventions, applied uniformly so the numbers are reproducible:

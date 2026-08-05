@@ -5,7 +5,7 @@ explains why they are shaped that way, for generation time and for humans.
 
 ## Why this shape
 
-Origin: PocketScript (2026), a full Android app build run agentically. Its
+Origin: a full Android app build (2026), run agentically. Its
 four-file system worked but its always-loaded contract grew to 97 KB because
 stories (histories, amendment sagas, verification narratives) lived inline
 beside the rules, and the same story was retold in a ledger row, a changelog
@@ -18,12 +18,12 @@ pass + 5-persona council review, both applied).
 
 ## Rule vs story — worked example
 
-Ledger row as PocketScript wrote it (condensed): several hundred words on
-watermark copy, approval dates, review findings, a fix narrative. As this
+Ledger row as the origin project wrote it (condensed): several hundred words
+on watermark copy, approval dates, review findings, a fix narrative. As this
 system writes it:
 
-- LEDGER.md row: `| 28 | Active·amended 2026-07-16 | Free-tier burned video carries a "PocketScript" watermark, ~25% transparency, bottom-right | sell polish, not capability; free clips advertise the app | → CL 2026-07-13 (watermark-free-tier), → CL 2026-07-16 (watermark-text-shortened) |`
-- CLAUDE.md extract: `#28: free-tier burns carry the "PocketScript" watermark → CL 2026-07-13 (watermark-free-tier)`
+- LEDGER.md row: `| 28 | Active·amended 2026-07-16 | Free-tier burned video carries a small text watermark naming the app, ~25% transparency, bottom-right | sell polish, not capability; free clips advertise the app | → CL 2026-07-13 (watermark-free-tier), → CL 2026-07-16 (watermark-text-shortened) |`
+- CLAUDE.md extract: `#28: free-tier burns carry a watermark naming the app → CL 2026-07-13 (watermark-free-tier)`
 - The several hundred words: two CHANGELOG entries, written once, grep-reachable.
 
 Pointers can also resolve to a `docs/notes/` file instead of a CHANGELOG
@@ -62,7 +62,7 @@ level care. Never paste unreviewed external text into CLAUDE.md or docs/notes/.
 ## Budget provenance
 
 The default CLAUDE.md budget shipped by SKILL.md is the measured rules-only
-residue of PocketScript's real 97 KB contract (+30% headroom), not a guess.
+residue of the origin project's real 97 KB contract (+30% headroom), not a guess.
 The number is 45000 bytes, measured from an extreme-rule-density outlier
 (LGPL legal text, a native pipeline, 42 Active ledger rows). Treat it as a
 ceiling, not a target — a fresh project's CLAUDE.md landing near it on day
