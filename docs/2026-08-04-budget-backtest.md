@@ -108,3 +108,61 @@ regression; the cut list holds; the spec sweep is clean. v1 acceptance
 criterion (design spec's own Bookkeeping section: "generates clean on two
 dummy projects (one lite, one full), lint green on both, plus the backtest
 number recorded in methodology.md") is met.
+
+### Post-acceptance fix: dangling `references/methodology.md` pointer
+
+**Date:** 2026-08-05. Task 8's review (reproducing the acceptance from
+scratch with different project names/module choices, plus a coverage hunt
+across all 8 tasks' reviews) found one real Important-severity gap this
+acceptance run's own checks did not catch:
+`templates/CLAUDE.template.md`'s header comment read "...is a ceiling, not a
+target — see references/methodology.md," and that sentence survives verbatim
+into every generated project's CLAUDE.md in both modes. `references/` is
+skill-side-only (design spec: "loaded on demand only", never listed in the
+Produced doc system table) and SKILL.md's Step 2 never copies it into the
+target project — so every generated project's own primary contract file
+shipped a pointer to a file that will never exist there. `doc-lint.sh`'s
+pointer check (its check 3) only resolves `→ CL YYYY-MM-DD (slug)`-format
+pointers, so this class of dangling reference was structurally invisible to
+the lint the system relies on — exactly the failure mode rule 9's "budgets
+in bytes, backtested" and the lint's own existence are supposed to prevent,
+just for a different token shape than the ones it checks.
+
+**Fix, scoped to one file:** `templates/CLAUDE.template.md`'s header comment
+was reworded to be self-contained — the ceiling-vs-target reasoning no
+longer references any file outside the generated project:
+
+> {{BUDGET_CLAUDE}} bytes is a ceiling, not a target — it was measured from
+> an extreme-rule-density outlier project. A fresh contract landing near it
+> on day one is diagnostic of a problem, not compliance.
+
+No other file changed. SKILL.md was deliberately NOT changed to start
+copying `references/` into target projects — that would add an undesigned
+file to the Produced doc system table, which is a bigger change than the
+finding calls for.
+
+**Verification (fresh independent construction — new scratch dirs, not the
+reused acceptance ones):**
+
+- Rebuilt a full/Android dummy (`PixelPad`, TARGETS module, no baseline) and
+  a lite/non-Android dummy (`gitwatch`, Go, no platform snippet) from the
+  amended template, both in fresh `tests/tmp/` scratch dirs.
+- `grep -c "references/methodology" CLAUDE.md` → **0** in both generated
+  CLAUDE.md files. The dangling reference is gone.
+- Token inventory unchanged: `grep -oh "{{[A-Za-z_]*}}" templates/CLAUDE.template.md
+  templates/AGENTS.template.md | sort -u` still returns exactly the same 8
+  tokens (`BUDGET_CLAUDE`, `CONSTRAINTS`, `EVIDENCE_STANDARD`,
+  `LITE_TASKS_SECTION`, `PLATFORM_SECTIONS`, `PRODUCT_PARAGRAPH`,
+  `PROJECT_NAME`, `STACK_ROWS`) before and after the edit — confirms this was
+  a prose-only change, no token added or removed.
+- `sh scripts/doc-lint.sh` against both fresh builds → **exit=0** for both
+  (no regression from the wording change; both still lint clean).
+- `sh tests/run-tests.sh` → **11/11 ALL PASS**, confirming the fix (a
+  templates/ file, not scripts/) touched nothing the harness covers.
+
+**Deferred, not part of this fix** (per explicit review scoping): the
+`docs/notes/README.md` spec row remaining unimplemented; the two lite-mode
+post-fill edits whose "before" strings are not literally contiguous in the
+templates (a known class from Task 7); and formalizing task-8-report.md's
+brief-vs-current-SKILL.md substitutions into a committed file. None of these
+block v1 acceptance, which now stands with this one gap closed.
