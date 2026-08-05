@@ -16,6 +16,8 @@ superpowers owns the workflow: brainstorming an idea into a spec, turning a spec
 
 Concretely: a spec produced by superpowers' brainstorming skill is expected to end with a Bookkeeping section, naming which changelog entry, which ledger row, and which plan row the resulting work will update. The generated `CLAUDE.md` states this rule in one line and points at `references/methodology.md` for the full definition. Neither file tells superpowers how to write a spec or a plan. It only tells whoever is about to land the resulting work where the record of that work belongs.
 
+None of this requires superpowers to be installed. The generated files are plain markdown and a shell script, and the Bookkeeping rule is just a line in `CLAUDE.md` that any session reads before doing work, regardless of what process produced that work. This skill works the same way with any other development methodology, or with none at all beyond "read CLAUDE.md, do the task, update the docs." superpowers is what this was designed and tested alongside, not a dependency.
+
 Use both together: superpowers to get from idea to shipped change, project-docs so the trail that change leaves behind stays small, truthful, and in one place per fact.
 
 ## What it generates
