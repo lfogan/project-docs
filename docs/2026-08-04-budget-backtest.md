@@ -60,3 +60,51 @@ for 45000 by only **220 bytes (0.71%)**. Any residue of 30769 or below ships
 40000 instead. This result sits one small estimation error away from moving a
 whole 5 KB step, and the per-rule price is what would move it. 45000 remains
 the number tasks 2, 3, 7 and 8 consume.
+
+## v1 acceptance
+
+**Date:** 2026-08-05.
+
+This is the plan's formal Task 8 acceptance gate — executed cold, by hand,
+against SKILL.md's current committed text (post the two Task 7 review-fix
+rounds), by a fresh reader rather than the implementer/reviewer who wrote it.
+It is distinct from Task 7's own review-round builds, which were scratch and
+produced no durable record.
+
+- **dummy-full** (`tests/tmp/dummy-full/`, gitignored scratch): NoteJar,
+  Android, full mode, TARGETS module yes, baseline module no. `sh
+  scripts/doc-lint.sh` → **exit=0**. TBD storage stack row correctly spawned a
+  `## Decisions Needed` row in PLAN.md (trigger "sync design lands"); the
+  Android `{{PLATFORM_SECTIONS}}` snippet landed as exactly one `## On-Device
+  QA` block (1 occurrence) containing `uiautomator` (1 occurrence), with a
+  blank line on each side per SKILL.md's spacing requirement. Generated file
+  set: CLAUDE.md, AGENTS.md, PLAN.md, CHANGELOG.md, LEDGER.md, TARGETS.md,
+  scripts/doc-lint.sh — matches full mode + a requested TARGETS module with no
+  baseline module, exactly.
+- **dummy-lite** (`tests/tmp/dummy-lite/`, gitignored scratch): todo-cli,
+  Rust, lite mode. `sh scripts/doc-lint.sh` → **exit=0**. Generated file set is
+  exactly CLAUDE.md, AGENTS.md, CHANGELOG.md, scripts/ — no PLAN.md, no
+  LEDGER.md. The `## Tasks` section heading appears exactly once (anchored
+  check); the widened `grep -c "PLAN\|LEDGER"` sweep (interface note 2 — not
+  the narrower `.md`-suffixed check) returned **0 for all three generated
+  files**, confirming the 10 CLAUDE.md + 1 AGENTS.md + 2 CHANGELOG.md
+  lite-mode post-fill edits were all applied correctly with no dangling
+  PLAN/LEDGER references.
+- **Harness:** `sh tests/run-tests.sh` → **11/11 ALL PASS**, no regression
+  from anything Task 7 touched.
+- **Templates cut-list sweep:** `ls templates/` does not contain
+  `HANDOVER.template.md` or `spec-sections.template.md` — clean.
+- **Spec sweep:** the design spec's "Produced doc system" table
+  (`docs/2026-08-04-project-docs-skill-design.md`) was checked against
+  dummy-full's actual generated file list. Every table row applicable to
+  dummy-full's choices (full mode, TARGETS requested, baseline declined) has
+  a corresponding generated file, and every generated file has a
+  corresponding table row; `docs/notes/` (dir on first use), `docs/design/
+  STATUS.md` (module, declined), and specs/plans (via superpowers, not this
+  skill) were correctly absent. **Zero discrepancies found.**
+
+Both dummy projects generate clean; both lint green; the harness has no
+regression; the cut list holds; the spec sweep is clean. v1 acceptance
+criterion (design spec's own Bookkeeping section: "generates clean on two
+dummy projects (one lite, one full), lint green on both, plus the backtest
+number recorded in methodology.md") is met.
