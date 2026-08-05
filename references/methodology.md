@@ -18,12 +18,17 @@ pass + 5-persona council review, both applied).
 
 ## Rule vs story — worked example
 
-Ledger row as PocketScript wrote it (condensed): 900 words on watermark copy,
-approval dates, review findings, a fix narrative. As this system writes it:
+Ledger row as PocketScript wrote it (condensed): several hundred words on
+watermark copy, approval dates, review findings, a fix narrative. As this
+system writes it:
 
 - LEDGER.md row: `| 28 | Active·amended 2026-07-16 | Free-tier burned video carries a "PocketScript" watermark, ~25% transparency, bottom-right | sell polish, not capability; free clips advertise the app | → CL 2026-07-13 (watermark-free-tier), → CL 2026-07-16 (watermark-text-shortened) |`
 - CLAUDE.md extract: `#28: free-tier burns carry the "PocketScript" watermark → CL 2026-07-13 (watermark-free-tier)`
-- The 900 words: two CHANGELOG entries, written once, grep-reachable.
+- The several hundred words: two CHANGELOG entries, written once, grep-reachable.
+
+Pointers can also resolve to a `docs/notes/` file instead of a CHANGELOG
+entry; notes are named `docs/notes/YYYY-MM-DD-<slug>.md` so pointers to them
+resolve.
 
 ## Spec sections
 

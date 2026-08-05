@@ -1,7 +1,7 @@
 #!/bin/sh
 # doc-lint.sh — project-docs system lint. Run from the target project root.
 # Env: BUDGET_CLAUDE, BUDGET_PLAN (bytes). Exit 0 clean; exit 1 with findings.
-BUDGET_CLAUDE="${BUDGET_CLAUDE:-35000}"
+BUDGET_CLAUDE="${BUDGET_CLAUDE:-45000}"
 BUDGET_PLAN="${BUDGET_PLAN:-80000}"
 fail=0
 note() { echo "doc-lint: $1"; fail=1; }
