@@ -66,7 +66,7 @@ in the file):
 <!-- BEGIN LITE_TASKS_SECTION -->
 ## Tasks
 
-<!-- lite mode: task state lives here. Cell rules = PLAN template's. -->
+<!-- lite mode: task state lives here. Cell rule: ≤200 chars — state + evidence + pointer if a story exists. -->
 
 | # | Task | Status |
 |---|---|---|
@@ -106,6 +106,7 @@ in the file):
     - Tech Stack comment: `+ a Decisions Needed entry in PLAN.md.` → `+ a ⚠ task in the ## Tasks section.`
     - Active decisions comment (the whole `<!-- One line per Active LEDGER.md row ... -->` block) → `<!-- One line per decision, ≤200 chars: #N: <rule> → CL YYYY-MM-DD (<slug>). Lite mode has no separate ledger file — this section IS the decision record; retiring a decision deletes its line. -->`
     - Working Agreements: `blocked on an owner decision (PLAN.md Decisions Needed)` → `blocked on an owner decision (see the flagged row in ## Tasks)`
+    - Working Agreements: `A spec without a Bookkeeping section (which ledger row / changelog entry / PLAN row it updates) is incomplete — add it before implementing.` → `A spec without a Bookkeeping section (which changelog entry it updates) is incomplete — add it before implementing.` (lite mode has no LEDGER.md and no separate PLAN row; a lite Bookkeeping obligation is CHANGELOG only)
     - Maintenance: `Deviating from an approved design/copy: LEDGER.md row + extract here + pointer. Never silent.` → `Deviating from an approved design/copy: an Active decisions line + pointer, here. Never silent.`
     - Maintenance: `Precedence when files disagree: code > CLAUDE.md > CHANGELOG > PLAN.` → `Precedence when files disagree: code > CLAUDE.md > CHANGELOG.` (no separate plan file exists in lite mode to rank)
   - In generated AGENTS.md:
@@ -114,8 +115,12 @@ in the file):
     this fix — not one of the two files above, but CHANGELOG.md is also
     generated in lite mode and its template has the identical problem):
     - `Append-only dated history, newest first. NOT here: rules (CLAUDE.md), task state (PLAN.md), the decision register (LEDGER.md).` → `Append-only dated history, newest first. NOT here: rules (CLAUDE.md). Task state and decisions also live in CLAUDE.md (its ## Tasks and ## Active decisions sections) — this file is history only.`
-  - Verify after: none of the three generated files should contain the
-    literal substring `PLAN.md` or `LEDGER.md` anywhere in lite mode.
+    - `Evidence may cite a PLAN cell instead of restating it.` → `Evidence goes inline in the entry itself — there is no separate cell to cite in lite mode.`
+  - Verify after — and this is the REAL acceptance bar, not the narrower one
+    used earlier: run `grep -c "PLAN\|LEDGER"` (no `.md` suffix required) —
+    NOT `grep -c "PLAN\.md\|LEDGER\.md"`, which misses bare-word references
+    like "ledger row", "PLAN row", or "PLAN cell" — against all three
+    generated files. Expect 0 in every one.
 
 ## Step 3 — init lint
 
