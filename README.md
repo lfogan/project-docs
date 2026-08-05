@@ -1,6 +1,6 @@
 # project-docs
 
-A Claude Code skill that scaffolds a documentation system for a project: a rules file, a task list, a changelog, and a decision log, structured so they stay small and don't repeat each other.
+A Claude Code skill that generates a system for project documentation: a rules file (CLAUDE.md), a task list, a changelog, and a decision log. They point at each other instead of repeating each other, and a lint fails when they outgrow their budget.
 
 ## The problem
 
