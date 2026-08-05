@@ -35,6 +35,18 @@ The default `CLAUDE.md` budget was measured, not guessed: taken from a real, shi
 
 `CHANGELOG.md` is append-only. The only edits allowed are redacting a secret and rotating old entries into an archive once the file grows past budget.
 
+## Install
+
+Clone into your personal skills directory:
+
+```bash
+git clone https://github.com/lfogan/project-docs.git ~/.claude/skills/project-docs
+```
+
+Start a new Claude Code session and the skill is available in every project. Update later with `git pull` from that directory.
+
+To scope it to a single project instead, clone into that project's `.claude/skills/` directory.
+
 ## Using it
 
 Say "set up project docs" at the start of a project, or on an existing repo to retrofit it, or run `/project-docs` directly. The skill asks six questions: scale (lite or full), a one-paragraph product description, non-negotiable constraints, locked tech decisions, optional modules (full mode only), and what counts as verified evidence on this project.
