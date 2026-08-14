@@ -78,7 +78,8 @@ in the file):
 - Full: CLAUDE.md, AGENTS.md, PLAN.md, CHANGELOG.md, LEDGER.md, chosen
   modules (TARGETS.md; docs/design/STATUS.md from BASELINE-STATUS template —
   `{{BASELINE_PATH}}` = where the handoff was vendored, `{{FREEZE_DATE}}` =
-  today), `scripts/doc-lint.sh`.
+  today), `scripts/doc-lint.sh`, and `docs/templates/bookkeeping-payload.md`
+  (verbatim copy of the BOOKKEEPING-PAYLOAD template — no tokens to fill).
 - Lite: CLAUDE.md (+Tasks section), AGENTS.md, CHANGELOG.md,
   `scripts/doc-lint.sh`.
 - doc-lint.sh: copy from this skill's scripts/, then edit only its
@@ -108,6 +109,7 @@ in the file):
     - Working Agreements: `blocked on an owner decision (PLAN.md Decisions Needed)` → `blocked on an owner decision (see the flagged row in ## Tasks)`
     - Working Agreements: `A spec without a Bookkeeping section (which ledger row / changelog entry / PLAN row it updates) is incomplete — add it before implementing.` → `A spec without a Bookkeeping section (which changelog entry it updates) is incomplete — add it before implementing.` (lite mode has no LEDGER.md and no separate PLAN row; a lite Bookkeeping obligation is CHANGELOG only)
     - Maintenance: `Deviating from an approved design/copy: LEDGER.md row + extract here + pointer. Never silent.` → `Deviating from an approved design/copy: an Active decisions line + pointer, here. Never silent.`
+    - Maintenance: `subagents return the payload in docs/templates/bookkeeping-payload.md; the dispatcher writes every doc home from it and runs doc-lint before commit.` → `subagents return a payload block (slug, entry draft, evidence with numbers pasted from command output); the main session writes CHANGELOG and the ## Tasks row from it and runs doc-lint before commit.` (lite mode generates no `docs/templates/` file — the payload contract lives in this line alone)
     - Maintenance: `Precedence when files disagree: code > CLAUDE.md > CHANGELOG > PLAN.` → `Precedence when files disagree: code > CLAUDE.md > CHANGELOG.` (no separate plan file exists in lite mode to rank)
   - In generated AGENTS.md:
     - `Doc system: PLAN.md (task state) · CHANGELOG.md (append-only history) · LEDGER.md (decision register).` → `Doc system: CLAUDE.md's ## Tasks section (task state) · CHANGELOG.md (append-only history).`

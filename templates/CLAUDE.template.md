@@ -59,6 +59,7 @@
 - Deviating from an approved design/copy: LEDGER.md row + extract here + pointer. Never silent.
 - Touching an area: verify the inline rules naming its files/symbols still hold. A falsified rule is corrected + changelog-entried in the same commit.
 - Precedence when files disagree: code > CLAUDE.md > CHANGELOG > PLAN. A mismatch becomes a correction entry, never a silent doc edit.
-- CHANGELOG merge conflicts: keep both sides, re-sort by date, never drop an entry. Subagents never write the shared docs directly; the main session reconciles.
+- Shared docs are written only by the main session, one docs pass per task: subagents return the payload in docs/templates/bookkeeping-payload.md; the dispatcher writes every doc home from it and runs doc-lint before commit.
+- CHANGELOG merge conflicts: keep both sides, re-sort by date, never drop an entry.
 - Secrets: never paste credentials, tokens, keys, dumps, or third-party personal data into any doc — cite the artifact instead. Redaction is the only permitted in-place edit: replace with `[redacted YYYY-MM-DD: reason]` + a new dated entry recording it. If it was pushed, rotate the credential — git history keeps it.
 {{LITE_TASKS_SECTION}}
