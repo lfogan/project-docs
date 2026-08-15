@@ -5,10 +5,10 @@ description: Use when starting a new project ("set up project docs", "scaffold p
 
 # project-docs — generate the project doc system
 
-Templates live in `templates/` beside this file; methodology and worked
-examples in `references/methodology.md` (read it if a design question comes
-up; do not load it otherwise). Default CLAUDE.md budget: **45000 bytes** —
-a ceiling, not a target (see references/methodology.md's Budget provenance).
+Templates live in `templates/` beside this file. Methodology and worked
+examples live in `references/methodology.md` (read it only when a design
+question comes up). Default CLAUDE.md budget: **45000 bytes**. Treat it as
+a ceiling (see references/methodology.md's Budget provenance).
 
 ## Step 0 — existing files check (ALWAYS first)
 
@@ -17,19 +17,19 @@ TARGETS.md, docs/design/STATUS.md, scripts/doc-lint.sh already exist in the
 target repo.
 
 - **One or more exist → RETROFIT.** This applies even if only a single file
-  is present (e.g. only CHANGELOG.md) — it is not "all of them" or "most of
-  them," any one existing file is enough to trigger retrofit mode. Never
+  is present (e.g. only CHANGELOG.md): any one existing file is enough to
+  trigger retrofit mode. Never
   overwrite an existing file without that file's own explicit go-ahead —
   consent is per file, but GATHERED IN BATCHES, never serially: present every
   file needing a decision as one multi-select question (AskUserQuestion with
-  multiSelect when available; otherwise a single message listing all of
+  multiSelect when available, otherwise a single message listing all of
   them), each file its own independently checkable item. Generate only the
-  files that are missing; a file that already exists stays untouched unless
+  files that are missing. A file that already exists stays untouched unless
   its owner explicitly approved regenerating it. Then OFFER (never silently
   run) an extraction pass: propose constraints, ledger rows, and stack-table
   entries mined from git log + existing docs — again batched, up to ~10
   proposed items per multi-select question, each item its own checkbox.
-  Approval stays per item; round trips do not.
+  Approval stays per item, without per-item round trips.
 - **None exist → greenfield.** Continue to Step 1.
 
 ## Step 1 — interview (harvest first, then batch)
@@ -38,26 +38,26 @@ target repo.
 question whose answer it already contains is not asked again — carry the
 harvested answer forward and restate it in the final summary for correction.
 Ask only the gaps, batched (AskUserQuestion, up to 4 questions per call,
-when available; otherwise one message listing the open questions). Ask
+when available, otherwise one message listing the open questions). Ask
 serially only when an answer genuinely gates a later question — Q0's mode
 gates Q5, nothing else gates anything.
 
 | # | Ask | Lands in |
 |---|---|---|
-| 0 | Scale: lite or full? **Default lite.** Recommend full only on real signals: multi-agent dispatch planned, many phases, several contributors, or an external design handoff to freeze. Lite→full is one documented upgrade session (see methodology), so under-choosing is cheap; over-choosing taxes every session. | file set |
+| 0 | Scale: lite or full? **Default lite.** Recommend full only on real signals: multi-agent dispatch planned, many phases, several contributors, or an external design handoff to freeze. Lite→full is one documented upgrade session (see methodology), so under-choosing is cheap and over-choosing taxes every session. | file set |
 | 1 | Product paragraph: what, who, platform, monetization? | `{{PRODUCT_PARAGRAPH}}` |
-| 2 | Non-negotiable constraints (shipping blockers; 1–2 fine)? | `{{CONSTRAINTS}}` — numbered lines |
+| 2 | Non-negotiable constraints (shipping blockers, 1–2 fine)? | `{{CONSTRAINTS}}` — numbered lines |
 | 3 | Commands & layout: how to build, test, and run, plus where code lives (key directories)? For an existing repo, propose these from inspection and confirm rather than ask cold. | `{{COMMANDS_AND_LAYOUT}}` — one line per command/dir |
 | 4 | Tech decisions already locked? (unknowns become `TBD — locked when <trigger>` rows, never guesses) | `{{STACK_ROWS}}` |
 | 5 | (full only) Modules: TARGETS matrix? external design handoff to freeze? | which templates instantiate |
 | 6 | Evidence standard — what counts as verified here? | `{{EVIDENCE_STANDARD}}` |
 
-`{{PROJECT_NAME}}` from the repo/product name; `{{GOAL_LINE}}` = one-sentence
-form of the product paragraph; `{{BUDGET_CLAUDE}}` = 45000 unless the owner
-sets another.
+- `{{PROJECT_NAME}}` from the repo/product name.
+- `{{GOAL_LINE}}` = one-sentence form of the product paragraph.
+- `{{BUDGET_CLAUDE}}` = 45000 unless the owner sets another.
 
 `{{PLATFORM_SECTIONS}}`: if Q1's platform is Android, fill with exactly the
-block between the BEGIN/END markers (markers excluded; keep one blank line
+block between the BEGIN/END markers (markers excluded. Keep one blank line
 on EACH side of the inserted block — one above its `## On-Device QA` heading,
 one below its last bullet — so it lands cleanly between the Workbench Notes
 comment and `## Maintenance` without gluing to either); any other platform →
@@ -72,7 +72,7 @@ the platform gets named, and no other platform has a snippet to fill.
 - Avoid taps within 100px of the nav bar; scroll the target into safe area first.
 <!-- END PLATFORM_SECTIONS (Android) -->
 
-`{{LITE_TASKS_SECTION}}` = empty in full mode; in lite mode, the block between
+`{{LITE_TASKS_SECTION}}` = empty in full mode. In lite mode, the block between
 the BEGIN/END markers (markers excluded, blank line above `##` when it lands
 in the file):
 
@@ -110,7 +110,7 @@ in the file):
 
 ### Mode tokens
 
-The CLAUDE/AGENTS/CHANGELOG templates are shared between modes; every
+The CLAUDE/AGENTS/CHANGELOG templates are shared between modes. Every
 mode-varying line is a token. Fill each from its mode's value below at
 generation time — there is NO post-fill edit pass, and doc-lint's check 2
 fails on any token left behind. Multi-line values are filled as whole lines,
@@ -174,7 +174,7 @@ exactly as fenced.
   - lite: `Evidence goes inline in the entry itself — there is no separate cell to cite in lite mode.`
 
 **Verify after (both modes):** every `{{TOKEN}}` gone (`grep -c '{{'` = 0 per
-generated file); and in lite mode additionally `grep -c "PLAN\|LEDGER"` (no
+generated file), and in lite mode additionally `grep -c "PLAN\|LEDGER"` (no
 `.md` suffix — bare-word references like "ledger row" or "PLAN cell" count)
 = 0 against generated CLAUDE.md, AGENTS.md, and CHANGELOG.md.
 
@@ -186,13 +186,13 @@ for real: `sh scripts/doc-lint.sh` from the target root.
 
 - **Greenfield: exit 0 is required, unconditionally.** Every file on disk was
   just generated by this run, so any finding is this run's own bug — fix it
-  and re-run; never report a greenfield finding as someone else's problem.
+  and re-run. Never report a greenfield finding as someone else's problem.
 - **Retrofit: exit 0 is required only for files this run generated or
   filled.** A pre-existing file that Step 0 correctly left untouched can
   carry its own pre-existing findings (a hand-written CLAUDE.md missing its
   `## Maintenance` block, or already over budget, are the concrete cases —
   doc-lint.sh has no way to tell "pre-existing" from "just generated," so
-  this distinction is the generator's job, not the script's). These are
+  making this distinction is the generator's job). These are
   NEVER silently fixed — that would be exactly the overwrite Step 0 exists
   to prevent. Instead, propose each finding's specific edit as its own item
   in one batched multi-select question (same consent shape as Step 0) and
@@ -202,13 +202,13 @@ for real: `sh scripts/doc-lint.sh` from the target root.
   force a clean exit by editing a file Step 0 protected.
 - The first run writes `docs/doc-lint-log.csv` (one row per run: date, exit,
   findings, byte sizes, directive count). That file is expected — commit it
-  with the doc system; its trend is the system's only outcome measurement.
+  with the doc system. Its trend is the system's only outcome measurement.
 - Then check by hand only what the script never checks at all: each
   generated header names what does NOT live in that file.
 - **Offer a lint allowlist entry** (offer — never silently edit settings):
   adding `Bash(sh scripts/doc-lint.sh)` to the target's
-  `.claude/settings.json` `permissions.allow`. The lint runs once per task;
-  a permission prompt on every run is the friction that kills the habit.
+  `.claude/settings.json` `permissions.allow`. The lint runs once per task,
+  and a permission prompt on every run is the friction that kills the habit.
 - Report the file list, budget, and lint result to the owner — in retrofit,
   including every proposed pre-existing-file edit still awaiting their
   go-ahead. Suggest committing the doc system as its own commit.

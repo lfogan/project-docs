@@ -4,7 +4,7 @@ A Claude Code skill that generates a documentation system for a project: a rules
 
 ## The problem
 
-CLAUDE.md files start small and grow without limit. Rules pile up next to the stories that explain them, decisions get written down three times with slightly different wording, and the file every session reads becomes tens of thousands of bytes of prose. One shipped project's contract file hit about 100KB this way.
+CLAUDE.md files start small and grow without limit. Rules pile up next to the reasoning that explains them, decisions get written down three times with slightly different wording, and the file every session reads becomes tens of thousands of bytes of prose. One shipped project's CLAUDE.md hit about 100KB this way.
 
 That file is read in full at the start of every session and again after every compaction, so every byte is paid for on every task, relevant or not. A rule also competes with everything around it for attention: a constraint buried in narrative gets followed less reliably than the same constraint in a short file.
 
@@ -27,9 +27,9 @@ Lite mode drops `PLAN.md` and `LEDGER.md` and folds task state into `CLAUDE.md`.
 
 ## How it works
 
-Rules stay inline in `CLAUDE.md`, one line each. Stories, meaning the reasoning behind a rule or what broke and why, go in `CHANGELOG.md`, written once. A rule that needs its backstory points at the entry: `→ CL 2026-08-01 (some-slug)`. A rule that would look wrong without its reason keeps a short why inline instead, because nobody follows a pointer before "fixing" something that looks like a mistake.
+Rules stay inline in `CLAUDE.md`, one line each. The reasoning for any rule, or why something broke, is written once in `CHANGELOG.md`. A rule that needs its reasoning points at the entry: `→ CL 2026-08-01 (some-slug)`. A rule that looks like a mistake without its reason keeps a short explanation inline, since a later session may "correct" an odd-looking rule without checking the changelog first.
 
-The contract also carries a Commands & Layout section: how to build, test, and run, and where the code lives. That's what every session needs first, and re-discovering it each session costs more than pruning narrative saves.
+`CLAUDE.md` also carries a Commands & Layout section: how to build, test, and run, and where the code lives. That's what every session needs first, and re-discovering it each session costs more than pruning narrative saves.
 
 In full mode the decision log lives in `LEDGER.md`, so it can grow to dozens of numbered entries without touching the always-loaded budget.
 
@@ -45,7 +45,7 @@ It also warns, without failing, when `CLAUDE.md` carries more than 75 directive 
 
 Two files carry a byte budget because two files are always loaded: `CLAUDE.md` at 45,000 bytes and `PLAN.md` at 80,000. Everything else is read on demand and free to grow.
 
-The 45,000 is derived from a measurement. The origin project's contract file was 97,699 bytes. Stripped to rules only, it came to 30,990. Add 30% headroom, round up to the next 5KB: 45,000. That project was unusually rule-dense (LGPL licence text, a native build pipeline, 42 active decisions), so treat the number as a ceiling. A fresh project landing near it on day one is already carrying story that belongs somewhere else.
+The 45,000 is derived from a measurement. The origin project's CLAUDE.md was 97,699 bytes. Stripped to rules only, it came to 30,990. Add 30% headroom, round up to the next 5KB: 45,000. That project was unusually rule-dense (LGPL licence text, a native build pipeline, 42 active decisions), so treat the number as a ceiling. A fresh project landing near it on day one is already carrying reasoning that belongs in the changelog.
 
 Override it by editing the `BUDGET_CLAUDE` line in the generated script, or for one run:
 
