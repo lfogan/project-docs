@@ -1,6 +1,6 @@
 ---
 name: project-docs
-description: Use when starting a new project ("set up project docs", "scaffold project documentation") or retrofitting one onto an existing repo — generates a context-economical doc system (CLAUDE.md contract, PLAN.md state, CHANGELOG.md history, LEDGER.md decisions, optional TARGETS/baseline modules, doc-lint) via a short interview.
+description: Use when starting a new project ("set up project docs", "scaffold project documentation") or retrofitting one onto an existing repo — generates a context-economical doc system via a short interview: CLAUDE.md contract, CHANGELOG.md history, doc-lint, plus PLAN.md state and LEDGER.md decisions in full mode and optional TARGETS/baseline modules.
 ---
 
 # project-docs — generate the project doc system

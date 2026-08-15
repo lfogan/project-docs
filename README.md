@@ -1,6 +1,6 @@
 # project-docs
 
-A Claude Code skill that generates a documentation system for a project: a rules file (CLAUDE.md), a task list, a changelog, and a decision log. Each fact lives in one file and the others point at it. A lint catches drift.
+A Claude Code skill that generates a documentation system for a project: rules (CLAUDE.md), tasks, history, and decisions, each in its own file, plus optional modules for an environment matrix and a frozen design handoff. Each fact lives in one file and the others point at it. A lint script catches drift.
 
 ## The problem
 
