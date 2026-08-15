@@ -1,6 +1,6 @@
 # project-docs
 
-A Claude Code skill that generates a documentation system for a project: a rules file (CLAUDE.md), a task list, a changelog, and a decision log. The files point at each other instead of repeating each other, and a lint catches drift.
+A Claude Code skill that generates a documentation system for a project: a rules file (CLAUDE.md), a task list, a changelog, and a decision log. Each fact lives in one file and the others point at it. A lint catches drift.
 
 ## The problem
 
@@ -23,13 +23,13 @@ This skill splits the file into pieces, one home per kind of information, so gro
 | `docs/design/STATUS.md` | Guard for a frozen external design handoff | Optional | Not offered |
 | `scripts/doc-lint.sh` | Checks everything above | Yes | Yes |
 
-Lite mode drops `PLAN.md` and `LEDGER.md` and folds task state into `CLAUDE.md`. It's the default; a small project rarely needs more, and upgrading to full later is a single step the skill records as its own changelog entry.
+Lite mode drops `PLAN.md` and `LEDGER.md` and folds task state into `CLAUDE.md`. It's the default. A small project rarely needs more, and upgrading to full later is a single step the skill records as its own changelog entry.
 
 ## How it works
 
 Rules stay inline in `CLAUDE.md`, one line each. Stories, meaning the reasoning behind a rule or what broke and why, go in `CHANGELOG.md`, written once. A rule that needs its backstory points at the entry: `→ CL 2026-08-01 (some-slug)`. A rule that would look wrong without its reason keeps a short why inline instead, because nobody follows a pointer before "fixing" something that looks like a mistake.
 
-The contract also carries a Commands & Layout section: how to build, test, and run, and where the code lives. That's what every session needs first, and re-discovering it each time costs more than any amount of pruned narrative ever saves.
+The contract also carries a Commands & Layout section: how to build, test, and run, and where the code lives. That's what every session needs first, and re-discovering it each session costs more than pruning narrative saves.
 
 In full mode the decision log lives in `LEDGER.md`, so it can grow to dozens of numbered entries without touching the always-loaded budget.
 
@@ -37,7 +37,7 @@ In full mode the decision log lives in `LEDGER.md`, so it can grow to dozens of 
 
 ## The lint
 
-`scripts/doc-lint.sh` fails on: a file over budget, unfilled template placeholders, pointers that resolve to nothing, decision summaries with no ledger row, and active ledger rows with no summary in `CLAUDE.md`. That last one matters most, since it means a live decision no session can see.
+`scripts/doc-lint.sh` fails on: a file over budget, unfilled template placeholders, pointers that resolve to nothing, decision summaries with no ledger row, and active ledger rows with no summary in `CLAUDE.md`. That last one means a live decision no session can see.
 
 It also warns, without failing, when `CLAUDE.md` carries more than 75 directive lines, and appends one line per run to `docs/doc-lint-log.csv` so failure rate and budget headroom show up as a trend. Plain POSIX shell, runs in a couple of seconds.
 
@@ -45,7 +45,7 @@ It also warns, without failing, when `CLAUDE.md` carries more than 75 directive 
 
 Two files carry a byte budget because two files are always loaded: `CLAUDE.md` at 45,000 bytes and `PLAN.md` at 80,000. Everything else is read on demand and free to grow.
 
-The 45,000 is measured, not guessed. The origin project's contract file was 97,699 bytes; stripped to rules only, it came to 30,990. Add 30% headroom, round up to the next 5KB: 45,000. That project was unusually rule-dense (LGPL licence text, a native build pipeline, 42 active decisions), so treat the number as a ceiling. A fresh project landing near it on day one is already carrying story that belongs somewhere else.
+The 45,000 is derived from a measurement. The origin project's contract file was 97,699 bytes. Stripped to rules only, it came to 30,990. Add 30% headroom, round up to the next 5KB: 45,000. That project was unusually rule-dense (LGPL licence text, a native build pipeline, 42 active decisions), so treat the number as a ceiling. A fresh project landing near it on day one is already carrying story that belongs somewhere else.
 
 Override it by editing the `BUDGET_CLAUDE` line in the generated script, or for one run:
 
@@ -69,13 +69,13 @@ Start a new Claude Code session and the skill is available in every project. Upd
 
 Say "set up project docs" at the start of a project, on an existing repo to retrofit it, or run `/project-docs` directly. The skill pulls answers from whatever you wrote in your opening message and asks only about the gaps: scale, what the product is, hard constraints, build and test commands, locked tech choices, optional modules, and what counts as evidence.
 
-On an existing repo it never touches a file without asking, and it asks once with a checklist rather than file by file. A finding against a pre-existing file is reported, not fixed.
+On an existing repo it never touches a file without asking, and it asks once with a checklist rather than file by file. The skill reports findings against pre-existing files and never fixes them.
 
 Naming Android as the platform adds a short on-device QA section to `CLAUDE.md`.
 
 ## Works without superpowers
 
-This skill is not part of [superpowers](https://github.com/obra/superpowers) and does not require it. superpowers owns the workflow (brainstorming, planning, execution); this skill owns the files a project keeps between sessions. The one connection point: a spec is expected to end with a Bookkeeping section naming which doc entries the work updates, and the generated `CLAUDE.md` states that rule. It applies under any process, or none.
+This skill is not part of [superpowers](https://github.com/obra/superpowers) and does not require it. superpowers owns the workflow (brainstorming, planning, execution). This skill owns the files a project keeps between sessions. They connect at one point: a spec is expected to end with a Bookkeeping section naming which doc entries the work updates, and the generated `CLAUDE.md` states that rule. It applies under any process, or none.
 
 ## License
 
