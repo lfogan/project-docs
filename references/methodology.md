@@ -12,7 +12,8 @@ beside the rules, and the same story was retold in a ledger row, a changelog
 entry, and a plan cell. This skill keeps the proven separation and adds the
 context-economy layer: rules inline, stories written once and pointed to,
 unbounded structures (ledger, history) in on-demand files, budgets measured
-not aspired to, and a 5-check lint for the failures that corrupt silently.
+not aspired to, and a lint (six failing checks, a rule-count warning, a run
+log) for the failures that corrupt silently.
 Full derivation: the design spec in ../docs/, revision 2 (internal adversarial
 pass + 5-persona council review, both applied).
 
@@ -58,6 +59,31 @@ CLAUDE.md is an instruction surface: repo write access = changing agent
 behavior for every future session. For repos with more than one writer, add a
 CODEOWNERS entry for CLAUDE.md/LEDGER.md and review contract diffs with code-
 level care. Never paste unreviewed external text into CLAUDE.md or docs/notes/.
+
+## Rule count vs bytes
+
+The byte budget is the contract, but it is a proxy: rule-following dilutes
+with the NUMBER of active directives, and one-line-per-rule compression
+raises directives per byte — a budget-clean contract can still be
+compliance-hostile. doc-lint therefore counts directive lines (bullets,
+numbered constraints, extracts) and WARNS past `DIRECTIVES_WARN` (default
+75) without failing: the threshold is unmeasured, so it steers instead of
+gates. Relatedly, a rule that would look wrong without its reason — a
+prohibition that reads like a bug, a blocked shortcut, anything
+irreversible — carries a one-clause why inline rather than only a pointer:
+a bare rule with no visible why is the reversal risk, and the pointer only
+protects agents that follow it.
+
+## Outcome measurement
+
+Structure checks cannot show whether the system improves agent behavior.
+The cheapest falsifiable signals, both free once running: the
+`docs/doc-lint-log.csv` trend (every lint run appends date, exit, finding
+count, byte sizes, directive count — failure rate and budget headroom over
+time), and the count of correction entries in CHANGELOG (each falsified
+inline rule lands one, per the Maintenance staleness duty — a rising rate
+means the contract is rotting faster than it is being pruned). If neither
+trends toward quiet, the system is keeping files tidy, not helping.
 
 ## Budget provenance
 

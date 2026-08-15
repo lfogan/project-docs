@@ -1,10 +1,9 @@
-# Dead Pointer Only — Behavioral Contract
+# Missing Extract Only — Behavioral Contract
 
 A single-violation fixture: everything here is otherwise clean. The one
-defect is a pointer, in LEDGER.md, that resolves nowhere.
+defect is that LEDGER.md row #3 is Active but has no extract below.
 
 ## Active decisions
-#1: orphan decision
 
 ## Maintenance
 - Run scripts/doc-lint.sh on edit.

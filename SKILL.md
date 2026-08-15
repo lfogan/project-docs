@@ -19,25 +19,38 @@ target repo.
 - **One or more exist → RETROFIT.** This applies even if only a single file
   is present (e.g. only CHANGELOG.md) — it is not "all of them" or "most of
   them," any one existing file is enough to trigger retrofit mode. Never
-  overwrite an existing file without that file's own explicit go-ahead,
-  asked per file, not once for the whole batch. Generate only the files that
-  are missing; a file that already exists stays untouched unless its owner
-  explicitly approves regenerating it. Then OFFER (never silently run) an
-  extraction pass: propose constraints, ledger rows, and stack-table entries
-  mined from git log + existing docs, owner approving each proposed item
-  individually.
+  overwrite an existing file without that file's own explicit go-ahead —
+  consent is per file, but GATHERED IN BATCHES, never serially: present every
+  file needing a decision as one multi-select question (AskUserQuestion with
+  multiSelect when available; otherwise a single message listing all of
+  them), each file its own independently checkable item. Generate only the
+  files that are missing; a file that already exists stays untouched unless
+  its owner explicitly approved regenerating it. Then OFFER (never silently
+  run) an extraction pass: propose constraints, ledger rows, and stack-table
+  entries mined from git log + existing docs — again batched, up to ~10
+  proposed items per multi-select question, each item its own checkbox.
+  Approval stays per item; round trips do not.
 - **None exist → greenfield.** Continue to Step 1.
 
-## Step 1 — interview (one question at a time)
+## Step 1 — interview (harvest first, then batch)
+
+**Harvest before asking.** Read the owner's opening request first: any
+question whose answer it already contains is not asked again — carry the
+harvested answer forward and restate it in the final summary for correction.
+Ask only the gaps, batched (AskUserQuestion, up to 4 questions per call,
+when available; otherwise one message listing the open questions). Ask
+serially only when an answer genuinely gates a later question — Q0's mode
+gates Q5, nothing else gates anything.
 
 | # | Ask | Lands in |
 |---|---|---|
-| 0 | Scale: lite (solo/small — contract + changelog only) or full? | file set |
+| 0 | Scale: lite or full? **Default lite.** Recommend full only on real signals: multi-agent dispatch planned, many phases, several contributors, or an external design handoff to freeze. Lite→full is one documented upgrade session (see methodology), so under-choosing is cheap; over-choosing taxes every session. | file set |
 | 1 | Product paragraph: what, who, platform, monetization? | `{{PRODUCT_PARAGRAPH}}` |
 | 2 | Non-negotiable constraints (shipping blockers; 1–2 fine)? | `{{CONSTRAINTS}}` — numbered lines |
-| 3 | Tech decisions already locked? (unknowns become `TBD — locked when <trigger>` rows, never guesses) | `{{STACK_ROWS}}` |
-| 4 | (full only) Modules: TARGETS matrix? external design handoff to freeze? | which templates instantiate |
-| 5 | Evidence standard — what counts as verified here? | `{{EVIDENCE_STANDARD}}` |
+| 3 | Commands & layout: how to build, test, and run, plus where code lives (key directories)? For an existing repo, propose these from inspection and confirm rather than ask cold. | `{{COMMANDS_AND_LAYOUT}}` — one line per command/dir |
+| 4 | Tech decisions already locked? (unknowns become `TBD — locked when <trigger>` rows, never guesses) | `{{STACK_ROWS}}` |
+| 5 | (full only) Modules: TARGETS matrix? external design handoff to freeze? | which templates instantiate |
+| 6 | Evidence standard — what counts as verified here? | `{{EVIDENCE_STANDARD}}` |
 
 `{{PROJECT_NAME}}` from the repo/product name; `{{GOAL_LINE}}` = one-sentence
 form of the product paragraph; `{{BUDGET_CLAUDE}}` = 45000 unless the owner
@@ -66,7 +79,7 @@ in the file):
 <!-- BEGIN LITE_TASKS_SECTION -->
 ## Tasks
 
-<!-- lite mode: task state lives here. Cell rule: ≤200 chars — state + evidence + pointer if a story exists. -->
+<!-- lite mode: task state lives here. Cell rule: ≤200 chars — state + evidence + pointer if a story exists. An in-progress row names its branch + next concrete action. -->
 
 | # | Task | Status |
 |---|---|---|
@@ -91,38 +104,79 @@ in the file):
   docs give no number for it either, and in lite mode there is no PLAN file
   for it to apply to. Only edit `BUDGET_PLAN=` later if the owner
   deliberately sets one.
-- Fill every `{{TOKEN}}`. Unknown stack cells get `TBD — locked when <trigger>`
+- Fill every `{{TOKEN}}`: content tokens from the interview, mode tokens
+  from the table below. Unknown stack cells get `TBD — locked when <trigger>`
   AND a Decisions Needed row (full) or a `⚠` task (lite).
-- **Lite-mode-only post-fill pass.** The CLAUDE and AGENTS templates are
-  shared between both modes and their static prose (not tokens — plain text
-  that survives unconditionally) names PLAN.md/LEDGER.md, neither of which
-  lite mode creates. After filling tokens, when mode is lite, apply these
-  exact edits to the generated files (verified against the actual committed
-  template text — quote-checked, not paraphrased):
-  - In generated CLAUDE.md:
-    - Top comment: `NOT here: task state (PLAN.md), history (CHANGELOG.md), full decisions (LEDGER.md).` → `NOT here: history (CHANGELOG.md). Task state lives in the ## Tasks section below; decisions live directly in ## Active decisions.`
-    - Read order: `Picking or landing work: PLAN.md.` → `Picking or landing work: the ## Tasks section below.` (below, not above — the Tasks section lands at the end of the file, after Read order)
-    - Read order: delete the bullet `Touching a ledgered area: its LEDGER.md row + cited entries.` entirely — lite mode's decisions live in this same file (the `## Active decisions` section below), already covered by the "Always: this file" bullet.
-    - Read order: `` `rg "<slug>" CHANGELOG*.md LEDGER.md` `` → `` `rg "<slug>" CHANGELOG*.md` ``
-    - Tech Stack comment: `+ a Decisions Needed entry in PLAN.md.` → `+ a ⚠ task in the ## Tasks section.`
-    - Active decisions comment (the whole `<!-- One line per Active LEDGER.md row ... -->` block) → `<!-- One line per decision, ≤200 chars: #N: <rule> → CL YYYY-MM-DD (<slug>). Lite mode has no separate ledger file — this section IS the decision record; retiring a decision deletes its line. -->`
-    - Working Agreements: `blocked on an owner decision (PLAN.md Decisions Needed)` → `blocked on an owner decision (see the flagged row in ## Tasks)`
-    - Working Agreements: `A spec without a Bookkeeping section (which ledger row / changelog entry / PLAN row it updates) is incomplete — add it before implementing.` → `A spec without a Bookkeeping section (which changelog entry it updates) is incomplete — add it before implementing.` (lite mode has no LEDGER.md and no separate PLAN row; a lite Bookkeeping obligation is CHANGELOG only)
-    - Maintenance: `Deviating from an approved design/copy: LEDGER.md row + extract here + pointer. Never silent.` → `Deviating from an approved design/copy: an Active decisions line + pointer, here. Never silent.`
-    - Maintenance: `subagents return the payload in docs/templates/bookkeeping-payload.md; the dispatcher writes every doc home from it and runs doc-lint before commit.` → `subagents return a payload block (slug, entry draft, evidence with numbers pasted from command output); the main session writes CHANGELOG and the ## Tasks row from it and runs doc-lint before commit.` (lite mode generates no `docs/templates/` file — the payload contract lives in this line alone)
-    - Maintenance: `Precedence when files disagree: code > CLAUDE.md > CHANGELOG > PLAN.` → `Precedence when files disagree: code > CLAUDE.md > CHANGELOG.` (no separate plan file exists in lite mode to rank)
-  - In generated AGENTS.md:
-    - `Doc system: PLAN.md (task state) · CHANGELOG.md (append-only history) · LEDGER.md (decision register).` → `Doc system: CLAUDE.md's ## Tasks section (task state) · CHANGELOG.md (append-only history).`
-  - In generated CHANGELOG.md (same defect class, found during verification of
-    this fix — not one of the two files above, but CHANGELOG.md is also
-    generated in lite mode and its template has the identical problem):
-    - `Append-only dated history, newest first. NOT here: rules (CLAUDE.md), task state (PLAN.md), the decision register (LEDGER.md).` → `Append-only dated history, newest first. NOT here: rules (CLAUDE.md). Task state and decisions also live in CLAUDE.md (its ## Tasks and ## Active decisions sections) — this file is history only.`
-    - `Evidence may cite a PLAN cell instead of restating it.` → `Evidence goes inline in the entry itself — there is no separate cell to cite in lite mode.`
-  - Verify after — and this is the REAL acceptance bar, not the narrower one
-    used earlier: run `grep -c "PLAN\|LEDGER"` (no `.md` suffix required) —
-    NOT `grep -c "PLAN\.md\|LEDGER\.md"`, which misses bare-word references
-    like "ledger row", "PLAN row", or "PLAN cell" — against all three
-    generated files. Expect 0 in every one.
+
+### Mode tokens
+
+The CLAUDE/AGENTS/CHANGELOG templates are shared between modes; every
+mode-varying line is a token. Fill each from its mode's value below at
+generation time — there is NO post-fill edit pass, and doc-lint's check 2
+fails on any token left behind. Multi-line values are filled as whole lines,
+exactly as fenced.
+
+- `{{NOT_HERE}}` (CLAUDE header comment)
+  - full: `task state (PLAN.md), history (CHANGELOG.md), full decisions (LEDGER.md).`
+  - lite: `history (CHANGELOG.md). Task state lives in the ## Tasks section below; decisions live directly in ## Active decisions.`
+- `{{READ_ORDER_MODE_BULLETS}}` (CLAUDE read order; full = two bullets)
+  - full:
+    ```
+    - Picking or landing work: PLAN.md.
+    - Touching a ledgered area: its LEDGER.md row + cited entries.
+    ```
+  - lite: `- Picking or landing work: the ## Tasks section below.`
+- `{{STATE_ROW}}` (CLAUDE read order, compaction bullet)
+  - full: `PLAN.md row` · lite: `## Tasks row`
+- `{{GREP_TARGETS}}` (CLAUDE read order, grep bullet)
+  - full: `CHANGELOG*.md LEDGER.md` · lite: `CHANGELOG*.md`
+- `{{TBD_ESCALATION}}` (CLAUDE Tech Stack comment)
+  - full: `a Decisions Needed entry in PLAN.md` · lite: `a ⚠ task in the ## Tasks section`
+- `{{ACTIVE_DECISIONS_COMMENT}}` (CLAUDE Active decisions; whole comment block)
+  - full:
+    ```
+    <!-- One line per Active LEDGER.md row, ≤200 chars, format:
+         #N: <rule> → CL YYYY-MM-DD (<slug>)
+         The LEDGER row wins on any disagreement. Retiring a row deletes its
+         line here; the row itself is immortal in LEDGER.md. doc-lint checks
+         both directions: every extract needs its row, every Active row its
+         extract. -->
+    ```
+  - lite:
+    ```
+    <!-- One line per decision, ≤200 chars: #N: <rule> → CL YYYY-MM-DD (<slug>).
+         Lite mode has no separate ledger file — this section IS the decision
+         record; retiring a decision deletes its line. -->
+    ```
+- `{{BOOKKEEPING_HOMES}}` (CLAUDE Working Agreements)
+  - full: `which ledger row / changelog entry / PLAN row it updates`
+  - lite: `which changelog entry it updates`
+- `{{BLOCKED_HOME}}` (CLAUDE Working Agreements, statuses line)
+  - full: `PLAN.md Decisions Needed` · lite: `the flagged row in ## Tasks`
+- `{{STATE_BUDGET_LINE}}` (CLAUDE Maintenance; whole line after the `- `)
+  - full: `PLAN.md over budget → close finished phases: one "phase closed" CHANGELOG entry absorbs every piece of evidence living only in its cells, then the phase collapses to a single summary row. Never trim cells to fit.`
+  - lite: `## Tasks outgrowing one screen, or a second contributor arriving → upgrade to full mode: split the task table and the decision lines into their own state and ledger files (one session, no data loss — the recipe ships with the project-docs skill), recording the upgrade as a dated CHANGELOG entry.` (worded without naming the not-yet-existing files, so the lite sweep below stays at 0)
+- `{{DEVIATION_ACTION}}` (CLAUDE Maintenance)
+  - full: `LEDGER.md row + extract here + pointer` · lite: `an Active decisions line + pointer, here`
+- `{{PRECEDENCE_ORDER}}` (CLAUDE Maintenance)
+  - full: `code > CLAUDE.md > CHANGELOG > PLAN` · lite: `code > CLAUDE.md > CHANGELOG`
+- `{{SUBAGENT_PAYLOAD_RULE}}` (CLAUDE Maintenance; rest of the line)
+  - full: `subagents return the payload in docs/templates/bookkeeping-payload.md; the dispatcher writes every doc home from it and runs doc-lint before commit.`
+  - lite: `subagents return a payload block (slug, entry draft, evidence with numbers pasted from command output); the main session writes CHANGELOG and the ## Tasks row from it and runs doc-lint before commit.`
+- `{{DOC_SYSTEM_LINE}}` (AGENTS.md)
+  - full: `PLAN.md (task state) · CHANGELOG.md (append-only history) · LEDGER.md (decision register).`
+  - lite: `CLAUDE.md's ## Tasks section (task state) · CHANGELOG.md (append-only history).`
+- `{{CL_NOT_HERE}}` (CHANGELOG header)
+  - full: `rules (CLAUDE.md), task state (PLAN.md), the decision register (LEDGER.md).`
+  - lite: `rules (CLAUDE.md). Task state and decisions also live in CLAUDE.md (its ## Tasks and ## Active decisions sections) — this file is history only.`
+- `{{CL_EVIDENCE_LINE}}` (CHANGELOG header)
+  - full: `Evidence may cite a PLAN cell instead of restating it.`
+  - lite: `Evidence goes inline in the entry itself — there is no separate cell to cite in lite mode.`
+
+**Verify after (both modes):** every `{{TOKEN}}` gone (`grep -c '{{'` = 0 per
+generated file); and in lite mode additionally `grep -c "PLAN\|LEDGER"` (no
+`.md` suffix — bare-word references like "ledger row" or "PLAN cell" count)
+= 0 against generated CLAUDE.md, AGENTS.md, and CHANGELOG.md.
 
 ## Step 3 — init lint
 
@@ -140,19 +194,21 @@ for real: `sh scripts/doc-lint.sh` from the target root.
   doc-lint.sh has no way to tell "pre-existing" from "just generated," so
   this distinction is the generator's job, not the script's). These are
   NEVER silently fixed — that would be exactly the overwrite Step 0 exists
-  to prevent. Instead, for each finding against a pre-existing file, propose
-  the specific edit as its own per-file suggestion and let the owner approve
-  or decline it, the same as Step 0's extraction-pass offer. A retrofit
-  run's lint MAY legitimately exit 1 on pre-existing findings — that is not
-  this run's failure, and the job here is to REPORT those findings clearly,
-  never to force a clean exit by editing a file Step 0 protected.
-- doc-lint.sh's unfilled-token check (its check 2) only scans `CLAUDE.md
-  PLAN.md CHANGELOG.md LEDGER.md TARGETS.md AGENTS.md` — it does NOT see
-  `docs/design/STATUS.md`, so a stray `{{TOKEN}}` left in that file lints
-  clean. When that module was generated, add it to the by-hand check below.
+  to prevent. Instead, propose each finding's specific edit as its own item
+  in one batched multi-select question (same consent shape as Step 0) and
+  let the owner approve or decline per item. A retrofit run's lint MAY
+  legitimately exit 1 on pre-existing findings — that is not this run's
+  failure, and the job here is to REPORT those findings clearly, never to
+  force a clean exit by editing a file Step 0 protected.
+- The first run writes `docs/doc-lint-log.csv` (one row per run: date, exit,
+  findings, byte sizes, directive count). That file is expected — commit it
+  with the doc system; its trend is the system's only outcome measurement.
 - Then check by hand only what the script never checks at all: each
-  generated header names what does NOT live in that file, and — per the
-  point above — `docs/design/STATUS.md` for any surviving `{{TOKEN}}`.
+  generated header names what does NOT live in that file.
+- **Offer a lint allowlist entry** (offer — never silently edit settings):
+  adding `Bash(sh scripts/doc-lint.sh)` to the target's
+  `.claude/settings.json` `permissions.allow`. The lint runs once per task;
+  a permission prompt on every run is the friction that kills the habit.
 - Report the file list, budget, and lint result to the owner — in retrofit,
   including every proposed pre-existing-file edit still awaiting their
   go-ahead. Suggest committing the doc system as its own commit.

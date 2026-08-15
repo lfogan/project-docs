@@ -33,7 +33,7 @@ Rules stay inline in `CLAUDE.md`, one line each. Stories, meaning the reasoning 
 
 In full mode the decision log lives in its own file, `LEDGER.md`, so it can grow to dozens of numbered entries without touching the byte budget of the file every session loads.
 
-`scripts/doc-lint.sh` checks byte budgets, unfilled template placeholders, broken pointers, and decision extracts with no matching ledger row. It needs nothing beyond a POSIX shell, grep, sed, and wc, and runs in about two seconds.
+`scripts/doc-lint.sh` checks byte budgets, unfilled template placeholders (including `docs/design/STATUS.md`), broken pointers, and the extract-to-ledger match in both directions — an extract with no ledger row, and the more dangerous inverse, an active ledger row with no extract, which would leave a live decision invisible to every session. It also warns (without failing) when `CLAUDE.md` carries more than 75 directive lines, since a rule competes with every other rule for attention no matter how few bytes it costs, and appends one line per run to `docs/doc-lint-log.csv` (date, exit, findings, byte sizes, directive count) so the system's health is a trend you can read, not a feeling. It needs nothing beyond a POSIX shell, grep, sed, and wc, and runs in about two seconds.
 
 `CHANGELOG.md` is append-only. The only edits allowed are redacting a secret and rotating old entries into an archive once the file grows past budget.
 
@@ -67,9 +67,9 @@ To scope it to a single project instead, clone into that project's `.claude/skil
 
 ## Using it
 
-Say "set up project docs" at the start of a project, or on an existing repo to retrofit it, or run `/project-docs` directly. The skill asks six questions: scale (lite or full), a one-paragraph product description, non-negotiable constraints, locked tech decisions, optional modules (full mode only), and what counts as verified evidence on this project.
+Say "set up project docs" at the start of a project, or on an existing repo to retrofit it, or run `/project-docs` directly. The skill covers seven questions: scale (lite or full — lite is the default), a one-paragraph product description, non-negotiable constraints, build/test/run commands and where code lives, locked tech decisions, optional modules (full mode only), and what counts as verified evidence on this project. It harvests answers already present in your opening message and asks only the gaps, batched rather than one at a time.
 
-If any target file already exists, the skill switches to retrofit mode and asks before touching each one, file by file.
+If any target file already exists, the skill switches to retrofit mode and asks before touching each one — consent is per file, gathered in one batched question rather than serially.
 
 Naming Android as the platform adds a short on-device QA section to `CLAUDE.md`, covering how to resolve tap coordinates from a UI dump instead of a screenshot.
 
