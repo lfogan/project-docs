@@ -25,15 +25,69 @@ This skill splits the file into pieces, one home per kind of information, so gro
 
 Lite mode drops `PLAN.md` and `LEDGER.md` and folds task state into `CLAUDE.md`. It's the default. A small project rarely needs more, and upgrading to full later is a single step the skill records as its own changelog entry.
 
+## Section by section
+
+**`CLAUDE.md`** - always loaded, so every section here is paid for on every task.
+
+| Section | Holds |
+|---|---|
+| Title + product paragraph | What the project is, in a few lines |
+| Read order | Which file to read when, and when to re-read after compaction |
+| Critical Constraints | Shipping blockers, one terse line each |
+| Commands & Layout | Build, test, run, and where the code lives |
+| Tech Stack (locked) | Table of Layer / Choice / Notes, with `TBD - locked when …` for open ones |
+| Active decisions | One ≤200-char line per active ledger row, each pointing at its changelog entry |
+| Working Agreements | Evidence standard, status vocabulary, the spec Bookkeeping rule |
+| Workbench Notes | Recurring gotchas promoted out of the changelog |
+| On-Device QA | Android only: `uiautomator` tap rules, density, nav-bar safe area |
+| Maintenance | How to edit each doc, budget rules, precedence, secrets handling |
+| Tasks | Lite mode only: the task table that full mode puts in `PLAN.md` |
+
+**`PLAN.md`** - task state only, full mode.
+
+| Section | Holds |
+|---|---|
+| Goal | One line: what this plan delivers |
+| Legend | `[Todo] [In-Progress] [Done] [Partial] [N/A]` and `⚠` for owner-blocked |
+| Phase *N* - *name* | Table of # / Task / Status, one per phase |
+| Decisions Needed | Table of Decision / Trigger / Blocking, one row per `⚠` and per TBD stack row |
+
+**`CHANGELOG.md`** - append-only history.
+
+| Section | Holds |
+|---|---|
+| Header | Entry format, slug rule, immutability rule, permitted edits |
+| Archive index | Which date ranges have been rotated out, and to which file |
+| Entries | Newest first: `- YYYY-MM-DD slug - summary. What: … Why: … Evidence: … Limits: …` |
+
+**`LEDGER.md`** - decision register, full mode.
+
+| Section | Holds |
+|---|---|
+| Header | Row rules: immortal, never renumbered, ≤600 chars, wins on disagreement |
+| Status key | Active / Active·amended / ·superseded / ·resolved / Retired, each dated |
+| Register | Table of # / Status / Decision / Why / Story |
+
+**`TARGETS.md`** - environment matrix, optional.
+
+| Section | Holds |
+|---|---|
+| Header | Evidence standard, and that the PLAN cell or changelog entry wins on disagreement |
+| Status key | ✅ pass · ⚠️ pass with open bug · ❌ blocked/fail · ➖ never ran |
+| Matrix | Table of Target / Version / Tested / Result / Notes |
+| Coverage gaps | What is not proven, dated |
+
+**`AGENTS.md`** - three lines: read `CLAUDE.md` first, what the doc system is, and that subagents report rather than write docs.
+
+**`docs/design/STATUS.md`** - optional guard on a frozen design handoff: the freeze date, and three rules - the shipped product wins, never restore toward the handoff, changes need the owner's prior approval.
+
 ## How it works
 
 Rules stay inline in `CLAUDE.md`, one line each. The reasoning for any rule, or why something broke, is written once in `CHANGELOG.md`. A rule that needs its reasoning points at the entry: `→ CL 2026-08-01 (some-slug)`. A rule that looks like a mistake without its reason keeps a short explanation inline, since a later session may "correct" an odd-looking rule without checking the changelog first.
 
-`CLAUDE.md` also carries a Commands & Layout section: how to build, test, and run, and where the code lives. That's what every session needs first, and re-discovering it each session costs more than pruning narrative saves.
+Commands & Layout survives the pruning even though it's long. Every session needs it first, and re-discovering it each time costs more than the space it takes.
 
 In full mode the decision log lives in `LEDGER.md`, so it can grow to dozens of numbered entries without touching the always-loaded budget.
-
-`CHANGELOG.md` is append-only. The only edits allowed are redacting a secret and rotating old entries into an archive.
 
 ## The lint
 

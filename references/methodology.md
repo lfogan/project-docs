@@ -1,4 +1,4 @@
-# project-docs methodology — rationale and worked examples
+# project-docs methodology - rationale and worked examples
 
 Loaded on demand only. The generated files are the runtime authority. This
 explains why they are shaped that way, for generation time and for humans.
@@ -17,7 +17,7 @@ log) for the failures that corrupt silently.
 Full derivation: the design spec in ../docs/, revision 2 (internal adversarial
 pass + 5-persona council review, both applied).
 
-## Rule vs reasoning — worked example
+## Rule vs reasoning - worked example
 
 Ledger row as the origin project wrote it (condensed): several hundred words
 on watermark copy, approval dates, review findings, a fix narrative. As this
@@ -35,11 +35,11 @@ resolve.
 
 Every spec written in a project using this system includes:
 
-- **Origin** — what prompted this, one paragraph.
-- **Changes** — numbered, each independently reviewable.
-- **Named consequences** — real effects flagged for the owner to judge.
-- **Deferred** — explicitly out of scope, with the trigger that revives each.
-- **Bookkeeping** — the exact doc updates: which LEDGER row (new or amended),
+- **Origin** - what prompted this, one paragraph.
+- **Changes** - numbered, each independently reviewable.
+- **Named consequences** - real effects flagged for the owner to judge.
+- **Deferred** - explicitly out of scope, with the trigger that revives each.
+- **Bookkeeping** - the exact doc updates: which LEDGER row (new or amended),
   which CHANGELOG entry (date + slug), which PLAN row, same commit as landing.
 
 The generated CLAUDE.md carries the one-line version ("a spec without a
@@ -79,9 +79,9 @@ the changelog first, and the pointer only protects sessions that follow it.
 Structure checks cannot show whether the system improves agent behavior.
 The cheapest falsifiable signals, both free once running: the
 `docs/doc-lint-log.csv` trend (every lint run appends date, exit, finding
-count, byte sizes, directive count — failure rate and budget headroom over
+count, byte sizes, directive count - failure rate and budget headroom over
 time), and the count of correction entries in CHANGELOG (each falsified
-inline rule lands one, per the Maintenance staleness duty — a rising rate
+inline rule lands one, per the Maintenance staleness duty - a rising rate
 means CLAUDE.md is rotting faster than it is being pruned). If neither
 trends toward quiet, the system is keeping files tidy without improving
 behavior.
