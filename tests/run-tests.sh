@@ -139,5 +139,79 @@ out=$(cd tests/fixtures/big-changelog && DOC_LINT_LOG=0 BUDGET_CLAUDE=50000 BUDG
 assert "big-changelog finds dead pointer" 1 "$rc" "$out" "(slug-9999)"
 absent "resolves at scale" "$out" "(slug-1234)"
 
+# --- doc-lint-hook.sh: the optional Stop-hook wrapper. Its whole job is
+# translating doc-lint's exit code into the Stop-hook protocol (0 = let the
+# turn end, 2 + stderr = block and hand the message to Claude), so the exit
+# codes ARE the contract and each one is asserted directly.
+HOOK=$(pwd)/scripts/doc-lint-hook.sh
+rm -rf tests/tmp/hook && mkdir -p tests/tmp/hook/scripts
+cp scripts/doc-lint.sh tests/tmp/hook/scripts/
+cp tests/fixtures/good-project/*.md tests/tmp/hook/
+HP=$(pwd)/tests/tmp/hook
+
+# Streams are kept SEPARATE. The hook's whole contract is that the message
+# for Claude goes to stderr — on a blocking Stop hook, stdout does not reach
+# Claude — so a harness that merged them with 2>&1 would still pass if the
+# `>&2` were deleted, which is the one regression that matters most here.
+hook_run() { # $1 = stdin JSON; echoes "<exit>|<stderr>" (stdout discarded)
+  o=$(printf '%s' "$1" | CLAUDE_PROJECT_DIR="$HP" BUDGET_CLAUDE=5000 BUDGET_PLAN=5000 sh "$HOOK" 2>&1 1>/dev/null); printf '%s|%s' "$?" "$o"
+}
+hook_stdout() { # $1 = stdin JSON; echoes stdout only
+  printf '%s' "$1" | CLAUDE_PROJECT_DIR="$HP" BUDGET_CLAUDE=5000 BUDGET_PLAN=5000 sh "$HOOK" 2>/dev/null
+}
+hook_expect() { # $1 desc, $2 stdin JSON, $3 expected exit, $4 expect-silent (yes/no)
+  r=$(hook_run "$2"); e=${r%%|*}; o=${r#*|}
+  if [ "$e" != "$3" ]; then echo "FAIL: $1 (exit $e, wanted $3)"; fails=$((fails+1)); return; fi
+  if [ "$4" = yes ] && [ -n "$o" ]; then echo "FAIL: $1 (expected silence, got: $o)"; fails=$((fails+1)); return; fi
+  if [ "$4" = no ] && [ -z "$o" ]; then echo "FAIL: $1 (expected output, got none)"; fails=$((fails+1)); return; fi
+  echo "ok: $1"
+}
+
+# Clean project: the turn must end with nothing said at all. This is the
+# common case and the entire point of running the lint from a hook.
+hook_expect "hook silent on clean project" '{"stop_hook_active":false}' 0 yes
+# The hook must not write the run log: that log is one row per bookkeeping
+# pass, and a hook firing every turn would bury the signal and dirty the tree.
+if [ -f tests/tmp/hook/docs/doc-lint-log.csv ]; then
+  echo "FAIL: hook wrote the run log"; fails=$((fails+1))
+else echo "ok: hook does not write the run log"; fi
+
+# Break the fixture, then assert the blocking path.
+sed -i 's/^## Maintenance/## Maintenanc/' tests/tmp/hook/CLAUDE.md
+hook_expect "hook blocks on findings" '{"stop_hook_active":false}' 2 no
+# Pass the REAL exit code to assert. Hardcoding the expected and actual both
+# to 2 makes the exit comparison unfalsifiable, leaving only the string match:
+# the hook could regress to exit 0 (findings narrated, turn not blocked) and
+# these would still report ok.
+r=$(hook_run '{"stop_hook_active":false}'); e=${r%%|*}; o=${r#*|}
+assert "block message carries the findings" 2 "$e" "$o" "maintenance block missing"
+assert "block message names the budget escape" 2 "$e" "$o" "over budget"
+assert "block message names the retrofit escape" 2 "$e" "$o" "already had before"
+assert "block message admits it will not re-run" 2 "$e" "$o" "will not run again this turn"
+# The message must be on STDERR specifically: stdout is not delivered to
+# Claude when a Stop hook blocks, so a message printed there is lost.
+so=$(hook_stdout '{"stop_hook_active":false}')
+if [ -z "$so" ]; then echo "ok: block message goes to stderr, not stdout"
+else echo "FAIL: hook wrote to stdout (invisible to Claude): $so"; fails=$((fails+1)); fi
+# Loop guard: the Stop event AFTER a block sets stop_hook_active=true. Without
+# this, a finding Claude cannot fix alone (over budget) blocks every turn until
+# Claude Code's own block cap stops it.
+hook_expect "loop guard stops a second block" '{"stop_hook_active":true}' 0 yes
+hook_expect "loop guard tolerates JSON spacing" '{ "stop_hook_active" : true }' 0 yes
+# A repo without the lint installed must be left completely alone.
+rm -rf tests/tmp/hook-empty && mkdir -p tests/tmp/hook-empty
+o=$(printf '{"stop_hook_active":false}' | CLAUDE_PROJECT_DIR="$(pwd)/tests/tmp/hook-empty" sh "$HOOK" 2>&1); e=$?
+if [ "$e" = 0 ] && [ -z "$o" ]; then echo "ok: hook ignores a non-project-docs repo"
+else echo "FAIL: hook acted on a repo with no lint (exit $e: $o)"; fails=$((fails+1)); fi
+# A repo that SHIPS the lint without being linted by it — this skill's own
+# repo is the case — must also be left alone. Guarding on the script alone
+# would block every turn on "CLAUDE.md is missing" with nothing to fix.
+rm -rf tests/tmp/hook-noclaude && mkdir -p tests/tmp/hook-noclaude/scripts
+cp scripts/doc-lint.sh tests/tmp/hook-noclaude/scripts/
+o=$(printf '{"stop_hook_active":false}' | CLAUDE_PROJECT_DIR="$(pwd)/tests/tmp/hook-noclaude" sh "$HOOK" 2>&1); e=$?
+if [ "$e" = 0 ] && [ -z "$o" ]; then echo "ok: hook ignores a repo shipping the lint without using it"
+else echo "FAIL: hook blocked a repo with no CLAUDE.md (exit $e: $o)"; fails=$((fails+1)); fi
+rm -rf tests/tmp/hook tests/tmp/hook-empty tests/tmp/hook-noclaude
+
 [ "$fails" -eq 0 ] && echo "ALL PASS" || echo "$fails FAILURES"
 exit "$fails"

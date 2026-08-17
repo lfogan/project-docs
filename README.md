@@ -22,6 +22,7 @@ This skill splits the file into pieces, one home per kind of information, so gro
 | `TARGETS.md` | Environment or device matrix | Optional | Not offered |
 | `docs/design/STATUS.md` | Guard for a frozen external design handoff | Optional | Not offered |
 | `scripts/doc-lint.sh` | Checks everything above | Yes | Yes |
+| `scripts/doc-lint-hook.sh` | Runs the lint from a Stop hook | Offered | Offered |
 
 Lite mode drops `PLAN.md` and `LEDGER.md` and folds task state into `CLAUDE.md`. It's the default. A small project rarely needs more, and upgrading to full later is a single step the skill records as its own changelog entry.
 
@@ -93,7 +94,13 @@ In full mode the decision log lives in `LEDGER.md`, so it can grow to dozens of 
 
 `scripts/doc-lint.sh` fails on: a file over budget, unfilled template placeholders, pointers that resolve to nothing, decision summaries with no ledger row, and active ledger rows with no summary in `CLAUDE.md`. That last one means a live decision no session can see.
 
-It also warns, without failing, when `CLAUDE.md` carries more than 75 directive lines, and appends one line per run to `docs/doc-lint-log.csv` so failure rate and budget headroom show up as a trend. Plain POSIX shell, runs in a couple of seconds.
+It also warns, without failing, when `CLAUDE.md` carries more than 75 directive lines, and appends one line per run to `docs/doc-lint-log.csv` so failure rate and budget headroom show up as a trend. Plain POSIX shell, no dependencies, well under a second on a normal doc set.
+
+### Running it from a hook
+
+Asking an agent to run the lint has the failure mode every other rule has: it gets skipped, or it gets narrated at length on every clean run, which costs more than the check does. `scripts/doc-lint-hook.sh` is an optional wrapper that runs the lint from a `Stop` hook instead, so it fires when a turn finishes rather than when someone remembers. A clean run says nothing at all. Findings block the turn and are handed back as feedback, except a file over budget, which the hook explicitly tells the agent not to fix on its own, because deciding what to prune is the owner's call.
+
+The skill offers to install it and never edits settings without being asked. It runs on every turn rather than every task, so a project that lints reliably by hand does not need it.
 
 ## The budget
 

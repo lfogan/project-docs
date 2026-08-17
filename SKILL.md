@@ -209,6 +209,74 @@ for real: `sh scripts/doc-lint.sh` from the target root.
   adding `Bash(sh scripts/doc-lint.sh)` to the target's
   `.claude/settings.json` `permissions.allow`. The lint runs once per task,
   and a permission prompt on every run is the friction that kills the habit.
+- **Offer the Stop hook** (offer — never silently edit settings; skip the
+  offer entirely if the owner declined the allowlist entry above, they have
+  said what they think of automatic runs). Copy `scripts/doc-lint-hook.sh`
+  alongside the lint, then add to the target's `.claude/settings.json`:
+
+  ```json
+  {
+    "hooks": {
+      "Stop": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"${CLAUDE_PROJECT_DIR}/scripts/doc-lint-hook.sh\"",
+              "shell": "bash",
+              "timeout": 60
+            }
+          ]
+        }
+      ]
+    }
+  }
+  ```
+
+  Three details, each of which fails SILENTLY if got wrong — the hook simply
+  never runs, and a lint that never runs looks exactly like a lint that
+  always passes:
+
+  - `Stop` takes no `matcher`, but the inner `hooks` array is still required.
+    A flat handler object never fires. Merge into an existing `hooks` block
+    rather than replacing it.
+  - `${CLAUDE_PROJECT_DIR}` must be BRACED. Claude Code substitutes the
+    braced form into the command itself; the bare `$CLAUDE_PROJECT_DIR` is
+    left for the shell, which may not have it set. Every hook config shipped
+    by an official plugin uses the braced form.
+  - `"shell": "bash"` is not optional on Windows. Without it, a command
+    string goes to Git Bash if present and PowerShell if not, and PowerShell
+    has no `sh`. The hook then fails to start, which a Stop hook treats as a
+    non-blocking error: the turn ends normally and nothing is reported.
+
+  What it buys: the lint runs once when Claude finishes a turn, outside the
+  session. Clean runs say nothing at all, so the habit costs no tokens and no
+  narration; findings block the turn and come back as feedback. This is the
+  enforcement the doc rules otherwise only ask for, and it makes the
+  "run the lint" line in CLAUDE.md a fallback rather than the mechanism.
+
+  **Do NOT offer the hook if this run ended with pre-existing findings the
+  owner chose to keep.** The lint cannot tell pre-existing from just-generated
+  (that distinction is this skill's job, not the script's), so the hook would
+  block on those same findings on every turn, forever, over a decision the
+  owner already made. The hook's message tells the agent to leave such
+  findings alone, which stops it editing protected files, but the turn is
+  still interrupted each time. Offer the hook only when the lint exits 0.
+
+  State the trade honestly when offering:
+
+  - It runs on EVERY turn, not every task, so it fires on conversational
+    turns that changed nothing. Cheap — well under a second — but not free.
+  - It blocks at most once per turn and never re-runs to confirm the fix, so
+    the fix is verified by the next turn's run, not this one.
+  - Check 7's directive-count warning will not surface through it. Warnings
+    leave the exit at 0, and a Stop hook exiting 0 shows nothing. That
+    warning only appears when the lint is run directly.
+  - It suppresses the run log, so a project that adopts the hook and lets the
+    by-hand habit lapse stops accruing trend rows.
+  - It is one more moving part in a system whose whole argument is that fewer
+    moving parts get followed. A project that lints reliably by hand does not
+    need it.
 - Report the file list, budget, and lint result to the owner — in retrofit,
   including every proposed pre-existing-file edit still awaiting their
   go-ahead. Suggest committing the doc system as its own commit.
