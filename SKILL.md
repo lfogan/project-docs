@@ -52,14 +52,19 @@ already answers.
 | 5 | Evidence standard — what counts as verified here? | `{{EVIDENCE_STANDARD}}` |
 | 6 | Design surface? (handoff/mockups to vendor beside DESIGN.md, or seed text, or none) | `{{DESIGN_SEED}}` |
 | 7 | First task? | `{{FIRST_TASK}}` |
+| 8 | Does shipping involve state outside the repo (app store, signing keys, hosting, domains, accounts)? If yes: what is already set up, and what are the per-release steps? | `{{RELEASE_SETUP}}`, `{{RELEASE_STEPS}}` |
 
 `{{PROJECT_NAME}}` comes from the repo/product name — never asked.
 
-`{{POINTER_EXTRAS}}`: Android (from Q1) → generate docs/agent/device-qa.md
-from DEVICE-QA.template.md and set the token to exactly
-`\n- docs/agent/device-qa.md — read before any adb/device/emulator work.`
-(a real newline). Any other platform → empty string, and the token must be
-deleted from the line, leaving no gap.
+`{{POINTER_EXTRAS}}`: one real newline plus one bullet per activity module
+generated, in this order; no module → contribute nothing. The token must be
+deleted from the line when empty, leaving no gap.
+
+- Android (Q1) → docs/agent/device-qa.md from DEVICE-QA.template.md; bullet:
+  `- docs/agent/device-qa.md — read before any adb/device/emulator work.`
+- External release state (Q8 answered yes) → docs/agent/release.md from
+  RELEASE.template.md; bullet:
+  `- docs/agent/release.md — read before any release, store, or deploy work; the record of what is already set up.`
 
 Caps are fixed defaults: 6000 bytes / 25 rules. If the owner overrides, edit
 the copied doc-lint.sh's `BUDGET_CLAUDE=`/`RULES_CAP=` defaults and state the
@@ -74,7 +79,8 @@ owner cap override), .githooks/pre-commit and .githooks/commit-msg (verbatim
 copies from scripts/hooks/).
 
 If a design surface exists: docs/design/DESIGN.md (assets vendored beside it).
-If Android: docs/agent/device-qa.md.
+If Android: docs/agent/device-qa.md. If Q8 found external release state:
+docs/agent/release.md.
 
 Fill every `{{TOKEN}}` — the lint fails on leftovers. Verify:
 `grep -c '{{' <file>` = 0 for each generated file.
@@ -119,7 +125,11 @@ preserves everything deleted.
    owner multi-selects. Expect a handful, not dozens.
 5. **TODO.** Carry open work only: [Todo]/[In-Progress] rows, [Partial] →
    "verify <x>" row, Decisions Needed → Blocked on owner. Everything [Done]
-   is dropped — git has it.
+   is dropped — git has it, EXCEPT done rows recording state outside the repo
+   (store console, signing keys, accounts, hosting, review submissions).
+   Those are invisible to git: harvest them into docs/agent/release.md as
+   dated one-time-setup lines before dropping the rows. Scan the v1 PLAN and
+   CHANGELOG for them specifically — a release phase is where they hide.
 6. **Design.** docs/design/DESIGN.md seeded by the owner or from the handoff;
    existing handoff assets stay beside it under the same gate; v1
    docs/design/STATUS.md and its "historical baseline" doctrine retire with

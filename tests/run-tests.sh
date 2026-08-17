@@ -40,6 +40,12 @@ run ""; expect "non-R line in Rules fails" 1 "non-R line"
 fresh; printf -- '- [x] finished thing\n' >> "$TMP/case/TODO.md"
 run ""; expect "done row in TODO fails" 1 "done row still in TODO.md"
 
+# 5b. the drain check is scoped to TODO.md: a release record in docs/agent/
+#     carries dated done-marks for work git cannot show, and must lint clean.
+fresh; printf -- '- Play signing key enrolled [done 2026-08-17]\n- [x] store listing published\n' \
+  >> "$TMP/case/docs/agent/device-qa.md"
+run ""; expect "done marks in docs/agent/ are allowed" 0 -
+
 # 6. forbidden v1 files
 fresh; printf '# old\n' > "$TMP/case/CHANGELOG.md"
 run ""; expect "CHANGELOG.md presence fails" 1 "forbidden v1 file"

@@ -36,6 +36,26 @@ Conclusions carried into v2:
    settled findings forever without it. That class alone survives as
    docs/SETTLED.md.
 
+## The one thing the TODO drain would have lost
+
+Deleting a done row is safe because the work is self-evidencing: the commit,
+the file, and the test prove it happened, so the row is a second copy. That
+argument fails for exactly one class — work whose completion lives OUTSIDE
+the repo: store console state, signing keys enrolled, accounts created,
+domains pointed, review submissions filed. Git cannot show any of it, so the
+tick is the only record and deleting it really does lose the fact.
+
+That class is not task state at all; it is durable setup. It lives in
+docs/agent/release.md with a dated `[done YYYY-MM-DD]` mark that is never
+deleted, while per-release progress stays in TODO.md as a single row naming
+the current step. The lint's drain check is scoped to TODO.md precisely so
+this record can carry done-marks (regression-tested), and docs/agent/ stays
+unpoliced by design.
+
+Test to apply when unsure whether to delete a row: **would a stranger reading
+the repo, with no memory of this session, be able to see that it was done?**
+Yes → delete. No → it belongs in the release record.
+
 ## Budget provenance
 
 The v2 CLAUDE.md skeleton is ~2.7 KB. The genuinely hot residue of the pilot
