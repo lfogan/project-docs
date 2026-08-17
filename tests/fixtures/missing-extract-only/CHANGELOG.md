@@ -1,3 +1,0 @@
-# CHANGELOG — Missing Extract Only
-
----

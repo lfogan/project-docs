@@ -1,3 +1,0 @@
-# CHANGELOG — Dead Pointer Only
-
----

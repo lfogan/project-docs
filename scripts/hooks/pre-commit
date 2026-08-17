@@ -1,0 +1,9 @@
+#!/bin/sh
+# project-docs v2 — commit gate. Installed by: git config core.hooksPath .githooks
+# Runs the doc lint; any finding blocks the commit. On a clean run the lint's
+# CSV trend row is staged so it rides inside this commit. On a failed run the
+# row stays unstaged and rides in the retry commit — deliberate: failure rows
+# are the trend that proves the gate works.
+sh scripts/doc-lint.sh || exit 1
+git add docs/doc-lint-log.csv 2>/dev/null
+exit 0

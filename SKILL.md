@@ -1,282 +1,139 @@
 ---
 name: project-docs
-description: Use when starting a new project ("set up project docs", "scaffold project documentation") or retrofitting one onto an existing repo — generates a context-economical doc system via a short interview: CLAUDE.md contract, CHANGELOG.md history, doc-lint, plus PLAN.md state and LEDGER.md decisions in full mode and optional TARGETS/baseline modules.
+description: Use when starting a new project ("set up project docs", "scaffold project documentation") or retrofitting an existing repo — generates the v2 minimal doc system (CLAUDE.md contract ≤6KB/≤25 rules, TODO.md state, docs/SETTLED.md rejection record, owner-gated docs/design/DESIGN.md, hard-failing commit-gate lint) and migrates v1 scaffolds (PLAN/LEDGER/CHANGELOG) to v2.
 ---
 
-# project-docs — generate the project doc system
+# project-docs v2 — minimal docs, mechanically enforced
 
-Templates live in `templates/` beside this file. Methodology and worked
-examples live in `references/methodology.md` (read it only when a design
-question comes up). Default CLAUDE.md budget: **45000 bytes**. Treat it as
-a ceiling (see references/methodology.md's Budget provenance).
+Templates in `templates/`, lint in `scripts/doc-lint.sh`, git hooks in
+`scripts/hooks/`. Rationale and the v1 post-mortem: `references/methodology.md`
+(read only when a design question comes up).
+
+Principles the generated system encodes — do not weaken them while filling:
+
+- **One fact, one home.** Design → docs/design/DESIGN.md · behavior → tests ·
+  task state → TODO.md · rejections → docs/SETTLED.md · stories → commit
+  message bodies. Nothing is recorded twice; git is the history. No CHANGELOG,
+  no LEDGER, no PLAN — the lint forbids them.
+- **Enforcement ladder.** deny-hook > test > lint check > CLAUDE.md R-line >
+  docs/agent/ note. A prose rule is last-resort debt; healthy rules_count
+  trends down.
+- **Every check hard-fails at commit.** Advisory checks are banned (v1's only
+  warning was ignored 42/42 runs while hard failures were fixed same-day).
+- **Hot cap.** CLAUDE.md ≤ 6000 bytes, ≤ 25 R-lines, no @-imports.
 
 ## Step 0 — existing files check (ALWAYS first)
 
-List which of CLAUDE.md, AGENTS.md, PLAN.md, CHANGELOG.md, LEDGER.md,
-TARGETS.md, docs/design/STATUS.md, scripts/doc-lint.sh already exist in the
-target repo.
+Look for: CLAUDE.md, TODO.md, docs/SETTLED.md, AGENTS.md, PLAN.md, LEDGER.md,
+CHANGELOG*.md, scripts/doc-lint.sh.
 
-- **One or more exist → RETROFIT.** This applies even if only a single file
-  is present (e.g. only CHANGELOG.md): any one existing file is enough to
-  trigger retrofit mode. Never
-  overwrite an existing file without that file's own explicit go-ahead —
-  consent is per file, but GATHERED IN BATCHES, never serially: present every
-  file needing a decision as one multi-select question (AskUserQuestion with
-  multiSelect when available, otherwise a single message listing all of
-  them), each file its own independently checkable item. Generate only the
-  files that are missing. A file that already exists stays untouched unless
-  its owner explicitly approved regenerating it. Then OFFER (never silently
-  run) an extraction pass: propose constraints, ledger rows, and stack-table
-  entries mined from git log + existing docs — again batched, up to ~10
-  proposed items per multi-select question, each item its own checkbox.
-  Approval stays per item, without per-item round trips.
-- **None exist → greenfield.** Continue to Step 1.
+- **v1 files present** (PLAN.md, LEDGER.md, or CHANGELOG*.md) → Retrofit
+  (section below).
+- **v2 files present** → maintenance only: never overwrite an existing file
+  without its own explicit go-ahead; consent gathered in ONE batched
+  multi-select (AskUserQuestion, each file its own item); generate only what
+  is missing.
+- **Nothing** → greenfield, continue.
 
-## Step 1 — interview (harvest first, then batch)
+## Step 1 — interview (harvest first, then one batch)
 
-**Harvest before asking.** Read the owner's opening request first: any
-question whose answer it already contains is not asked again — carry the
-harvested answer forward and restate it in the final summary for correction.
-Ask only the gaps, batched (AskUserQuestion, up to 4 questions per call,
-when available, otherwise one message listing the open questions). Ask
-serially only when an answer genuinely gates a later question — Q0's mode
-gates Q5, nothing else gates anything.
+Read the owner's opening request first; anything it already answers is not
+asked again. Ask only the gaps, batched (AskUserQuestion, up to 4 per call).
+For an existing repo, PROPOSE answers from inspection (build files, tree,
+`gradlew tasks`, package.json) and confirm — never ask cold what the repo
+already answers.
 
 | # | Ask | Lands in |
 |---|---|---|
-| 0 | Scale: lite or full? **Default lite.** Recommend full only on real signals: multi-agent dispatch planned, many phases, several contributors, or an external design handoff to freeze. Lite→full is one documented upgrade session (see methodology), so under-choosing is cheap and over-choosing taxes every session. | file set |
 | 1 | Product paragraph: what, who, platform, monetization? | `{{PRODUCT_PARAGRAPH}}` |
-| 2 | Non-negotiable constraints (shipping blockers, 1–2 fine)? | `{{CONSTRAINTS}}` — numbered lines |
-| 3 | Commands & layout: how to build, test, and run, plus where code lives (key directories)? For an existing repo, propose these from inspection and confirm rather than ask cold. | `{{COMMANDS_AND_LAYOUT}}` — one line per command/dir |
-| 4 | Tech decisions already locked? (unknowns become `TBD — locked when <trigger>` rows, never guesses) | `{{STACK_ROWS}}` |
-| 5 | (full only) Modules: TARGETS matrix? external design handoff to freeze? | which templates instantiate |
-| 6 | Evidence standard — what counts as verified here? | `{{EVIDENCE_STANDARD}}` |
+| 2 | Non-negotiable constraints? Apply the admission test to each — no test or hook can catch it AND a competent agent would violate it by default. Pass → R8+ lines. Testable instead → a TODO row "write <TestName>". | `{{PROJECT_RULES}}` |
+| 3 | Build/test/run commands + where code lives? | `{{COMMANDS_AND_LAYOUT}}` |
+| 4 | Tech locked? Unknowns = `TBD — locked when <trigger>` row + a Blocked-on-owner TODO row, never a guess. | `{{STACK_ROWS}}` |
+| 5 | Evidence standard — what counts as verified here? | `{{EVIDENCE_STANDARD}}` |
+| 6 | Design surface? (handoff/mockups to vendor beside DESIGN.md, or seed text, or none) | `{{DESIGN_SEED}}` |
+| 7 | First task? | `{{FIRST_TASK}}` |
 
-- `{{PROJECT_NAME}}` from the repo/product name.
-- `{{GOAL_LINE}}` = one-sentence form of the product paragraph.
-- `{{BUDGET_CLAUDE}}` = 45000 unless the owner sets another.
+`{{PROJECT_NAME}}` comes from the repo/product name — never asked.
 
-`{{PLATFORM_SECTIONS}}`: if Q1's platform is Android, fill with exactly the
-block between the BEGIN/END markers (markers excluded. Keep one blank line
-on EACH side of the inserted block — one above its `## On-Device QA` heading,
-one below its last bullet — so it lands cleanly between the Workbench Notes
-comment and `## Maintenance` without gluing to either); any other platform →
-empty string. Android is the only v1 snippet — the interview's Q1 is where
-the platform gets named, and no other platform has a snippet to fill.
+`{{POINTER_EXTRAS}}`: Android (from Q1) → generate docs/agent/device-qa.md
+from DEVICE-QA.template.md and set the token to exactly
+`\n- docs/agent/device-qa.md — read before any adb/device/emulator work.`
+(a real newline). Any other platform → empty string, and the token must be
+deleted from the line, leaving no gap.
 
-<!-- BEGIN PLATFORM_SECTIONS (Android) -->
-## On-Device QA
-
-- Never eyeball tap coordinates from screenshots. Always run `adb shell uiautomator dump /sdcard/ui.xml && adb pull /sdcard/ui.xml` and tap the exact center of the resolved `bounds` rect.
-- Account for device density/scaling before issuing `adb shell input tap`.
-- Avoid taps within 100px of the nav bar; scroll the target into safe area first.
-<!-- END PLATFORM_SECTIONS (Android) -->
-
-`{{LITE_TASKS_SECTION}}` = empty in full mode. In lite mode, the block between
-the BEGIN/END markers (markers excluded, blank line above `##` when it lands
-in the file):
-
-<!-- BEGIN LITE_TASKS_SECTION -->
-## Tasks
-
-<!-- lite mode: task state lives here. Cell rule: ≤200 chars — state + evidence + pointer if a story exists. An in-progress row names its branch + next concrete action. -->
-
-| # | Task | Status |
-|---|---|---|
-<!-- END LITE_TASKS_SECTION -->
-
+Caps are fixed defaults: 6000 bytes / 25 rules. If the owner overrides, edit
+the copied doc-lint.sh's `BUDGET_CLAUDE=`/`RULES_CAP=` defaults and state the
+override in the final report — the CSV logs the cap per run, so a bump is a
+visible trend event.
 
 ## Step 2 — generate
 
-- Full: CLAUDE.md, AGENTS.md, PLAN.md, CHANGELOG.md, LEDGER.md, chosen
-  modules (TARGETS.md; docs/design/STATUS.md from BASELINE-STATUS template —
-  `{{BASELINE_PATH}}` = where the handoff was vendored, `{{FREEZE_DATE}}` =
-  today), `scripts/doc-lint.sh`, and `docs/templates/bookkeeping-payload.md`
-  (verbatim copy of the BOOKKEEPING-PAYLOAD template — no tokens to fill).
-- Lite: CLAUDE.md (+Tasks section), AGENTS.md, CHANGELOG.md,
-  `scripts/doc-lint.sh`.
-- doc-lint.sh: copy from this skill's scripts/, then edit only its
-  `BUDGET_CLAUDE=` default line to this project's `{{BUDGET_CLAUDE}}` — the
-  script's shipped `BUDGET_CLAUDE` default is NOT the project's contract
-  number, and the generated CLAUDE.md header and the lint must never
-  disagree. Leave `BUDGET_PLAN=` at the script's shipped default (80000): no
-  v1 interview question sets a plan-file budget, the methodology/backtest
-  docs give no number for it either, and in lite mode there is no PLAN file
-  for it to apply to. Only edit `BUDGET_PLAN=` later if the owner
-  deliberately sets one.
-- Fill every `{{TOKEN}}`: content tokens from the interview, mode tokens
-  from the table below. Unknown stack cells get `TBD — locked when <trigger>`
-  AND a Decisions Needed row (full) or a `⚠` task (lite).
+Always: CLAUDE.md, AGENTS.md, TODO.md, docs/SETTLED.md,
+scripts/doc-lint.sh (verbatim copy from this skill's scripts/, then apply any
+owner cap override), .githooks/pre-commit and .githooks/commit-msg (verbatim
+copies from scripts/hooks/).
 
-### Mode tokens
+If a design surface exists: docs/design/DESIGN.md (assets vendored beside it).
+If Android: docs/agent/device-qa.md.
 
-The CLAUDE/AGENTS/CHANGELOG templates are shared between modes. Every
-mode-varying line is a token. Fill each from its mode's value below at
-generation time — there is NO post-fill edit pass, and doc-lint's check 2
-fails on any token left behind. Multi-line values are filled as whole lines,
-exactly as fenced.
+Fill every `{{TOKEN}}` — the lint fails on leftovers. Verify:
+`grep -c '{{' <file>` = 0 for each generated file.
 
-- `{{NOT_HERE}}` (CLAUDE header comment)
-  - full: `task state (PLAN.md), history (CHANGELOG.md), full decisions (LEDGER.md).`
-  - lite: `history (CHANGELOG.md). Task state lives in the ## Tasks section below; decisions live directly in ## Active decisions.`
-- `{{READ_ORDER_MODE_BULLETS}}` (CLAUDE read order; full = two bullets)
-  - full:
-    ```
-    - Picking or landing work: PLAN.md.
-    - Touching a ledgered area: its LEDGER.md row + cited entries.
-    ```
-  - lite: `- Picking or landing work: the ## Tasks section below.`
-- `{{STATE_ROW}}` (CLAUDE read order, compaction bullet)
-  - full: `PLAN.md row` · lite: `## Tasks row`
-- `{{GREP_TARGETS}}` (CLAUDE read order, grep bullet)
-  - full: `CHANGELOG*.md LEDGER.md` · lite: `CHANGELOG*.md`
-- `{{TBD_ESCALATION}}` (CLAUDE Tech Stack comment)
-  - full: `a Decisions Needed entry in PLAN.md` · lite: `a ⚠ task in the ## Tasks section`
-- `{{ACTIVE_DECISIONS_COMMENT}}` (CLAUDE Active decisions; whole comment block)
-  - full:
-    ```
-    <!-- One line per Active LEDGER.md row, ≤200 chars, format:
-         #N: <rule> → CL YYYY-MM-DD (<slug>)
-         The LEDGER row wins on any disagreement. Retiring a row deletes its
-         line here; the row itself is immortal in LEDGER.md. doc-lint checks
-         both directions: every extract needs its row, every Active row its
-         extract. -->
-    ```
-  - lite:
-    ```
-    <!-- One line per decision, ≤200 chars: #N: <rule> → CL YYYY-MM-DD (<slug>).
-         Lite mode has no separate ledger file — this section IS the decision
-         record; retiring a decision deletes its line. -->
-    ```
-- `{{BOOKKEEPING_HOMES}}` (CLAUDE Working Agreements)
-  - full: `which ledger row / changelog entry / PLAN row it updates`
-  - lite: `which changelog entry it updates`
-- `{{BLOCKED_HOME}}` (CLAUDE Working Agreements, statuses line)
-  - full: `PLAN.md Decisions Needed` · lite: `the flagged row in ## Tasks`
-- `{{STATE_BUDGET_LINE}}` (CLAUDE Maintenance; whole line after the `- `)
-  - full: `PLAN.md over budget → close finished phases: one "phase closed" CHANGELOG entry absorbs every piece of evidence living only in its cells, then the phase collapses to a single summary row. Never trim cells to fit.`
-  - lite: `## Tasks outgrowing one screen, or a second contributor arriving → upgrade to full mode: split the task table and the decision lines into their own state and ledger files (one session, no data loss — the recipe ships with the project-docs skill), recording the upgrade as a dated CHANGELOG entry.` (worded without naming the not-yet-existing files, so the lite sweep below stays at 0)
-- `{{DEVIATION_ACTION}}` (CLAUDE Maintenance)
-  - full: `LEDGER.md row + extract here + pointer` · lite: `an Active decisions line + pointer, here`
-- `{{PRECEDENCE_ORDER}}` (CLAUDE Maintenance)
-  - full: `code > CLAUDE.md > CHANGELOG > PLAN` · lite: `code > CLAUDE.md > CHANGELOG`
-- `{{SUBAGENT_PAYLOAD_RULE}}` (CLAUDE Maintenance; rest of the line)
-  - full: `subagents return the payload in docs/templates/bookkeeping-payload.md; the dispatcher writes every doc home from it and runs doc-lint before commit.`
-  - lite: `subagents return a payload block (slug, entry draft, evidence with numbers pasted from command output); the main session writes CHANGELOG and the ## Tasks row from it and runs doc-lint before commit.`
-- `{{DOC_SYSTEM_LINE}}` (AGENTS.md)
-  - full: `PLAN.md (task state) · CHANGELOG.md (append-only history) · LEDGER.md (decision register).`
-  - lite: `CLAUDE.md's ## Tasks section (task state) · CHANGELOG.md (append-only history).`
-- `{{CL_NOT_HERE}}` (CHANGELOG header)
-  - full: `rules (CLAUDE.md), task state (PLAN.md), the decision register (LEDGER.md).`
-  - lite: `rules (CLAUDE.md). Task state and decisions also live in CLAUDE.md (its ## Tasks and ## Active decisions sections) — this file is history only.`
-- `{{CL_EVIDENCE_LINE}}` (CHANGELOG header)
-  - full: `Evidence may cite a PLAN cell instead of restating it.`
-  - lite: `Evidence goes inline in the entry itself — there is no separate cell to cite in lite mode.`
+## Step 3 — install and verify
 
-**Verify after (both modes):** every `{{TOKEN}}` gone (`grep -c '{{'` = 0 per
-generated file), and in lite mode additionally `grep -c "PLAN\|LEDGER"` (no
-`.md` suffix — bare-word references like "ledger row" or "PLAN cell" count)
-= 0 against generated CLAUDE.md, AGENTS.md, and CHANGELOG.md.
+1. `git config core.hooksPath .githooks`; on POSIX systems also
+   `chmod +x .githooks/pre-commit .githooks/commit-msg` (Git for Windows runs
+   them via sh regardless).
+2. `sh scripts/doc-lint.sh` from the repo root. **Greenfield: exit 0 is
+   required, unconditionally** — every file was just generated by this run,
+   so any finding is this run's own bug. Fix and re-run.
+3. Offer (never silently apply) an allowlist entry in .claude/settings.json
+   `permissions.allow`: `Bash(sh scripts/doc-lint.sh)`.
+4. Report the file list and lint result; suggest committing the doc system as
+   one commit — **with `[design-approved]` in the message when DESIGN.md or
+   design assets are part of it** (creating them counts as a design change;
+   the owner is present at setup, so the token is honest). The first run
+   creates docs/doc-lint-log.csv — commit it; its trend is the system's only
+   outcome measurement.
 
-## Step 3 — init lint
+## Retrofit — v1 → v2 (one session, one `docs-v2` commit)
 
-`scripts/doc-lint.sh` was already copied into the target root and edited with
-this project's budget in Step 2 — do not re-derive its checks by hand. Run it
-for real: `sh scripts/doc-lint.sh` from the target root.
+Consent shape throughout: batched multi-select, each item independently
+checkable, ~10 items per question. Deletions are proposed, never silent; git
+preserves everything deleted.
 
-- **Greenfield: exit 0 is required, unconditionally.** Every file on disk was
-  just generated by this run, so any finding is this run's own bug — fix it
-  and re-run. Never report a greenfield finding as someone else's problem.
-- **Retrofit: exit 0 is required only for files this run generated or
-  filled.** A pre-existing file that Step 0 correctly left untouched can
-  carry its own pre-existing findings (a hand-written CLAUDE.md missing its
-  `## Maintenance` block, or already over budget, are the concrete cases —
-  doc-lint.sh has no way to tell "pre-existing" from "just generated," so
-  making this distinction is the generator's job). These are
-  NEVER silently fixed — that would be exactly the overwrite Step 0 exists
-  to prevent. Instead, propose each finding's specific edit as its own item
-  in one batched multi-select question (same consent shape as Step 0) and
-  let the owner approve or decline per item. A retrofit run's lint MAY
-  legitimately exit 1 on pre-existing findings — that is not this run's
-  failure, and the job here is to REPORT those findings clearly, never to
-  force a clean exit by editing a file Step 0 protected.
-- The first run writes `docs/doc-lint-log.csv` (one row per run: date, exit,
-  findings, byte sizes, directive count). That file is expected — commit it
-  with the doc system. Its trend is the system's only outcome measurement.
-- Then check by hand only what the script never checks at all: each
-  generated header names what does NOT live in that file.
-- **Offer a lint allowlist entry** (offer — never silently edit settings):
-  adding `Bash(sh scripts/doc-lint.sh)` to the target's
-  `.claude/settings.json` `permissions.allow`. The lint runs once per task,
-  and a permission prompt on every run is the friction that kills the habit.
-- **Offer the Stop hook** (offer — never silently edit settings; skip the
-  offer entirely if the owner declined the allowlist entry above, they have
-  said what they think of automatic runs). Copy `scripts/doc-lint-hook.sh`
-  alongside the lint, then add to the target's `.claude/settings.json`:
+1. **Baseline.** Record current sizes (CLAUDE.md, PLAN.md, LEDGER.md,
+   CHANGELOG* totals, directive count) in the report — the before-numbers the
+   first v2 CSV row is read against.
+2. **Commands & Layout.** Derive fresh from inspection and confirm with the
+   owner. Do not assume the v1 file has this section — generated v1 files
+   have shipped without it.
+3. **Rules triage.** From v1 Critical Constraints + Active LEDGER rows,
+   classify each: already test-enforced → drop (the test is the record) ·
+   testable but untested → TODO row "write <TestName>" · untestable AND
+   default-violated → R-line candidate · history/superseded/copy-churn →
+   drop. Owner multi-selects R-candidates; 7 seeds + approved ≤ 25.
+   Calibration from the pilot repo: 77 active rows → expect 8–12 R-lines.
+4. **SETTLED harvest.** Search v1 LEDGER + CHANGELOG for withdrawn findings,
+   owner-rejected proposals, "do not re-raise" markers. Propose Don't-lines;
+   owner multi-selects. Expect a handful, not dozens.
+5. **TODO.** Carry open work only: [Todo]/[In-Progress] rows, [Partial] →
+   "verify <x>" row, Decisions Needed → Blocked on owner. Everything [Done]
+   is dropped — git has it.
+6. **Design.** docs/design/DESIGN.md seeded by the owner or from the handoff;
+   existing handoff assets stay beside it under the same gate; v1
+   docs/design/STATUS.md and its "historical baseline" doctrine retire with
+   the file.
+7. **Delete v1 files** (owner-approved batch): PLAN.md, LEDGER.md,
+   CHANGELOG*.md, docs/templates/bookkeeping-payload.md,
+   docs/design/STATUS.md, scripts/doc-lint-hook.sh, and any Stop-hook entry
+   in .claude/settings.json. Keep docs/notes/ if the owner wants the audit
+   reports; they are cold.
+8. Generate the v2 set (Step 2), install hooks (Step 3), lint → exit 0
+   required, commit everything as `docs-v2`.
 
-  ```json
-  {
-    "hooks": {
-      "Stop": [
-        {
-          "hooks": [
-            {
-              "type": "command",
-              "command": "\"${CLAUDE_PROJECT_DIR}/scripts/doc-lint-hook.sh\"",
-              "shell": "bash",
-              "timeout": 60
-            }
-          ]
-        }
-      ]
-    }
-  }
-  ```
+## Subagents
 
-  Three details, each of which fails SILENTLY if got wrong — the hook simply
-  never runs, and a lint that never runs looks exactly like a lint that
-  always passes:
-
-  - `Stop` takes no `matcher`, but the inner `hooks` array is still required.
-    A flat handler object never fires. Merge into an existing `hooks` block
-    rather than replacing it.
-  - `${CLAUDE_PROJECT_DIR}` must be BRACED. Claude Code substitutes the
-    braced form into the command itself; the bare `$CLAUDE_PROJECT_DIR` is
-    left for the shell, which may not have it set. Every hook config shipped
-    by an official plugin uses the braced form.
-  - `"shell": "bash"` is not optional on Windows. Without it, a command
-    string goes to Git Bash if present and PowerShell if not, and PowerShell
-    has no `sh`. The hook then fails to start, which a Stop hook treats as a
-    non-blocking error: the turn ends normally and nothing is reported.
-
-  What it buys: the lint runs once when Claude finishes a turn, outside the
-  session. Clean runs say nothing at all, so the habit costs no tokens and no
-  narration; findings block the turn and come back as feedback. This is the
-  enforcement the doc rules otherwise only ask for, and it makes the
-  "run the lint" line in CLAUDE.md a fallback rather than the mechanism.
-
-  **Do NOT offer the hook if this run ended with pre-existing findings the
-  owner chose to keep.** The lint cannot tell pre-existing from just-generated
-  (that distinction is this skill's job, not the script's), so the hook would
-  block on those same findings on every turn, forever, over a decision the
-  owner already made. The hook's message tells the agent to leave such
-  findings alone, which stops it editing protected files, but the turn is
-  still interrupted each time. Offer the hook only when the lint exits 0.
-
-  State the trade honestly when offering:
-
-  - It runs on EVERY turn, not every task, so it fires on conversational
-    turns that changed nothing. Cheap — well under a second — but not free.
-  - It blocks at most once per turn and never re-runs to confirm the fix, so
-    the fix is verified by the next turn's run, not this one.
-  - Check 7's directive-count warning will not surface through it. Warnings
-    leave the exit at 0, and a Stop hook exiting 0 shows nothing. That
-    warning only appears when the lint is run directly.
-  - It suppresses the run log, so a project that adopts the hook and lets the
-    by-hand habit lapse stops accruing trend rows.
-  - It is one more moving part in a system whose whole argument is that fewer
-    moving parts get followed. A project that lints reliably by hand does not
-    need it.
-- Report the file list, budget, and lint result to the owner — in retrofit,
-  including every proposed pre-existing-file edit still awaiting their
-  go-ahead. Suggest committing the doc system as its own commit.
+No payload protocol. AGENTS.md carries the whole rule: subagents report
+evidence (commands run + observed output) and never edit CLAUDE.md, TODO.md,
+or docs/SETTLED.md — the main session writes those and commits.

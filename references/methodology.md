@@ -1,98 +1,86 @@
-# project-docs methodology - rationale and worked examples
+# project-docs v2 methodology — rationale and evidence
 
-Loaded on demand only. The generated files are the runtime authority. This
-explains why they are shaped that way, for generation time and for humans.
+Loaded on demand only. The generated files are the runtime authority.
 
-## Why this shape
+## The v1 post-mortem (why v2 is shaped like this)
 
-Origin: a full Android app build (2026), run agentically. Its
-four-file system worked but its always-loaded CLAUDE.md grew to 97 KB because
-the reasoning behind rules (histories, amendment sagas, verification
-narratives) lived inline beside the rules, and the same account was repeated
-in a ledger row, a changelog entry, and a plan cell. This skill keeps the
-proven separation and adds the context-economy layer: rules inline, reasoning
-written once and pointed to, unbounded structures (ledger, history) in
-on-demand files, budgets set by measurement, and a lint (six failing checks, a rule-count warning, a run
-log) for the failures that corrupt silently.
-Full derivation: the design spec in ../docs/, revision 2 (internal adversarial
-pass + 5-persona council review, both applied).
+v1 (CLAUDE.md + PLAN + LEDGER + CHANGELOG + extract/pointer lint) was measured
+across 7 live repos on 2026-08-17. The pilot repo (hard-graft, an Android app
+5 days old, 140 commits, 14.8k lines of Kotlin) showed:
 
-## Rule vs reasoning - worked example
+| Measurement | Value |
+|---|---|
+| Total doc bytes | 468 KB (vs 690 KB of code) |
+| Always-loaded set (CLAUDE.md + PLAN.md) | ~105 KB per work-picking session |
+| CLAUDE.md growth | +57% in 3 days; two-thirds of it decision extracts |
+| Decision retirement | 1 of 78 ledger rows, ever |
+| Directive-count warning | fired 42/42 runs; count rose 76→107 anyway |
+| Hard lint failures | 4, each fixed by the very next run |
+| Commits touching doc files | 99 of 140 (71%) |
+| Extracts duplicating an existing test | ≥5 (named ArchitectureTest/ContrastTest inline) |
 
-Ledger row as the origin project wrote it (condensed): several hundred words
-on watermark copy, approval dates, review findings, a fix narrative. As this
-system writes it:
+Conclusions carried into v2:
 
-- LEDGER.md row: `| 28 | Active·amended 2026-07-16 | Free-tier burned video carries a small text watermark naming the app, ~25% transparency, bottom-right | sell polish, not capability; free clips advertise the app | → CL 2026-07-13 (watermark-free-tier), → CL 2026-07-16 (watermark-text-shortened) |`
-- CLAUDE.md extract: `#28: free-tier burns carry a watermark naming the app → CL 2026-07-13 (watermark-free-tier)`
-- The several hundred words: two CHANGELOG entries, written once, grep-reachable.
-
-Pointers can also resolve to a `docs/notes/` file instead of a CHANGELOG
-entry. Notes are named `docs/notes/YYYY-MM-DD-<slug>.md` so pointers to them
-resolve.
-
-## Spec sections
-
-Every spec written in a project using this system includes:
-
-- **Origin** - what prompted this, one paragraph.
-- **Changes** - numbered, each independently reviewable.
-- **Named consequences** - real effects flagged for the owner to judge.
-- **Deferred** - explicitly out of scope, with the trigger that revives each.
-- **Bookkeeping** - the exact doc updates: which LEDGER row (new or amended),
-  which CHANGELOG entry (date + slug), which PLAN row, same commit as landing.
-
-The generated CLAUDE.md carries the one-line version ("a spec without a
-Bookkeeping section is incomplete"). This is the full definition.
-
-## Lite → full upgrade
-
-Lite = CLAUDE.md (with inline `## Tasks` table) + CHANGELOG.md + AGENTS.md +
-lint. Upgrade when the task table outgrows one screen or a second contributor
-arrives: move the table to PLAN.md (from PLAN.template.md), move any accreted
-decision lines to LEDGER.md rows + extracts, delete the `## Tasks` section,
-record the upgrade as a dated CHANGELOG entry. One session, no data loss.
-
-## Multi-writer repos
-
-CLAUDE.md is an instruction surface: anyone with repo write access can change
-agent behavior for every future session. For repos with more than one writer,
-add a CODEOWNERS entry for CLAUDE.md/LEDGER.md and review CLAUDE.md diffs
-with the same care as code. Never paste unreviewed external text into CLAUDE.md or docs/notes/.
-
-## Rule count vs bytes
-
-The byte budget is what the lint enforces, but it is a proxy: rule-following
-dilutes with the number of active directives, and one-line-per-rule
-compression raises directives per byte, so a file can pass the byte budget
-and still carry too many rules to follow reliably. doc-lint therefore counts
-directive lines (bullets, numbered constraints, extracts) and warns past
-`DIRECTIVES_WARN` (default 75) without failing: the threshold is unmeasured,
-so it steers instead of gates. A rule that looks like a mistake without its
-reason (a prohibition that reads like a bug, a blocked shortcut, anything
-irreversible) keeps a one-clause explanation inline rather than only a
-pointer. A later session may "correct" an odd-looking rule without checking
-the changelog first, and the pointer only protects sessions that follow it.
-
-## Outcome measurement
-
-Structure checks cannot show whether the system improves agent behavior.
-The cheapest falsifiable signals, both free once running: the
-`docs/doc-lint-log.csv` trend (every lint run appends date, exit, finding
-count, byte sizes, directive count - failure rate and budget headroom over
-time), and the count of correction entries in CHANGELOG (each falsified
-inline rule lands one, per the Maintenance staleness duty - a rising rate
-means CLAUDE.md is rotting faster than it is being pruned). If neither
-trends toward quiet, the system is keeping files tidy without improving
-behavior.
+1. **Advisory checks change nothing; hard-failing checks are obeyed same-day.**
+   Same agent, same week, both behaviors observed. v2 bans warnings.
+2. **Per-file budgets get satisfied by relocation** (prune into CHANGELOG,
+   rotate CHANGELOG into archives — the origin repo sat at 96%/99.7% of two
+   budgets, green, with 652 KB total). v2 caps the only thing that loads.
+3. **A rule a test can enforce should be a test.** The repo already had the
+   tests; the prose was a second copy that could (and did) drift.
+4. **Four homes per fact ⇒ documented precedence ladders and "knowingly
+   ahead of source" annotations.** v2: one fact, one home; nothing can
+   disagree.
+5. **Git cannot record what was declined.** The one irreplaceable v1 content
+   class was "raised and WITHDRAWN, do not re-raise" — cold audits re-raise
+   settled findings forever without it. That class alone survives as
+   docs/SETTLED.md.
 
 ## Budget provenance
 
-The default CLAUDE.md budget shipped by SKILL.md is the measured rules-only
-residue of the origin project's real 97 KB CLAUDE.md, plus 30% headroom.
-The number is 45000 bytes, measured from an extreme-rule-density outlier
-(LGPL legal text, a native pipeline, 42 Active ledger rows). Treat it as a
-ceiling. A fresh project's CLAUDE.md landing near it on day one signals a
-problem.
-Measurement: ../docs/2026-08-04-budget-backtest.md. Re-run the method on any
-project whose shape differs wildly and set the budget from your own number.
+The v2 CLAUDE.md skeleton is ~2.7 KB. The genuinely hot residue of the pilot
+repo — commands, stack one-liners, and the 8–12 rules that pass the admission
+test (untestable AND default-violated) — prices at ~4.5 KB. 6000 bytes is
+that plus headroom, and roughly 7× smaller than v1's 45,000 ceiling, which
+was derived from an outlier and reachable by relocation. 25 R-lines is an
+alarm line, not a target; ~10 is the expected steady state. Overrides go in
+the generated doc-lint.sh and are logged per run (rules_cap column), so a
+bump is a visible trend event rather than a silent loosening.
+
+## Lint check → observed failure it prevents
+
+| Check | Prevents (observed instance) |
+|---|---|
+| 1 cap + no imports | hot-set regrowth (+57%/3 days); byte-smuggling past the one measured number |
+| 2a rules grammar + cap | directive dilution (76→107 under an ignored warning) |
+| 2b SETTLED grammar | narrative creep — one-line Don'ts make stories impossible |
+| 3 TODO drain | the PLAN graveyard (62 stale [Partial] rows) |
+| 4 forbidden v1 files | regrowth from muscle memory / agents imitating repo history |
+| 5 paths resolve | dangling pointers (4 caught in 5 days; v1 itself shipped one) |
+| 6 required sections | pilot's CLAUDE.md had NO build/test commands and nothing noticed for 5 days |
+| 7 no unfilled tokens | broken generation passing silently |
+| commit-msg design gate | silent edits to the owner's design source of truth |
+
+## Outcome measurement
+
+docs/doc-lint-log.csv, one row per lint run (the pre-commit hook stages the
+row into its commit). Healthy directions:
+
+- `rules_count` **down** — lessons graduating up the enforcement ladder.
+- `docs_touched` share of commits **down** — less ceremony (v1: 71%).
+- `claude_bytes` flat, far under cap — a fresh contract near the cap on day
+  one is diagnostic of a problem.
+- `settled_lines` up **slowly and only on owner "no"s**.
+- `agent_bytes` unpoliced by design — bytes landing cold instead of hot is
+  the system working.
+
+## Where enforcement runs, and why
+
+Two thin git hooks via `core.hooksPath`: pre-commit (all lint checks + CSV
+staging) and commit-msg (design gate — it needs the message). Nothing runs
+during editing: the owner chose commit-time-only for development speed. A
+check that depends on an agent remembering to run it has the reliability of a
+rule that depends on an agent remembering to follow it; at the pilot's pace
+(140 commits/5 days) the commit gate fires constantly with zero memory
+dependence. Known bypass: `--no-verify` (R4 forbids it; a missing CSV row
+makes a bypass visible).

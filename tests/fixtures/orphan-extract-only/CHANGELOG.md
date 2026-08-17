@@ -1,3 +1,0 @@
-# CHANGELOG — Orphan Extract Only
-
----
