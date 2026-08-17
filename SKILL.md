@@ -64,7 +64,7 @@ deleted from the line when empty, leaving no gap.
   `- docs/agent/device-qa.md — read before any adb/device/emulator work.`
 - External release state (Q8 answered yes) → docs/agent/release.md from
   RELEASE.template.md; bullet:
-  `- docs/agent/release.md — read before any release, store, or deploy work; the record of what is already set up.`
+  `- docs/agent/release.md — read before any release, store, or deploy work, and add a dated line there after completing setup git cannot show (keys, console state, accounts).`
 
 Caps are fixed defaults: 6000 bytes / 25 rules. If the owner overrides, edit
 the copied doc-lint.sh's `BUDGET_CLAUDE=`/`RULES_CAP=` defaults and state the
