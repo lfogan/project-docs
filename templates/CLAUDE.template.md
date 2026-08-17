@@ -62,7 +62,7 @@
 ## Maintenance
 
 - Landing work: update every doc home in the same commit, per the spec's Bookkeeping list. Never "docs later".
-- Editing this file: run `scripts/doc-lint.sh`. Over budget → prune stories to CHANGELOG or docs/notes/ first, same commit, own dated entry. Never squeeze rules. Notes are named `docs/notes/YYYY-MM-DD-<slug>.md` so pointers to them resolve.
+- Editing this file: run `scripts/doc-lint.sh`, silently — exit 0 gets no announcement and no summary, exit 1 quotes the findings. Over budget → prune stories to CHANGELOG or docs/notes/ first, same commit, own dated entry. Never squeeze rules. Notes are named `docs/notes/YYYY-MM-DD-<slug>.md` so pointers to them resolve.
 - {{STATE_BUDGET_LINE}}
 - Editing CHANGELOG: entries are immutable; append only. Over ~50 KB → rotate oldest entries (entry boundaries only) to `CHANGELOG-archive-<range>.md`, own commit, content-preserving, update the archive index in its header.
 - Deviating from an approved design/copy: {{DEVIATION_ACTION}}. Never silent.

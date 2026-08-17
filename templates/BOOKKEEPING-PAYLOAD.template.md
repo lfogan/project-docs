@@ -47,4 +47,6 @@ Dispatcher checklist (per task, one docs pass):
    both pointing `→ CL YYYY-MM-DD (<slug>)`.
 5. Update the PLAN row if named, downgrading to [Partial] where
    `not-claimed` covers the row's evidence.
-6. `sh scripts/doc-lint.sh` → exit 0, then commit code + docs together.
+6. `sh scripts/doc-lint.sh` → exit 0, then commit code + docs together. Run
+   it silently: exit 0 gets no announcement and no summary, exit 1 quotes the
+   findings and fixes them before the commit.
