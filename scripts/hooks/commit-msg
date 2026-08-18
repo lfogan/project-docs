@@ -4,11 +4,22 @@
 # commit message. This lives in commit-msg, not pre-commit, because only
 # commit-msg sees the message. Bypassing with --no-verify skips both hooks -
 # that is R4, and the CSV trend makes a silent bypass visible as a missing row.
-if git diff --cached --name-only | grep -q '^docs/design/'; then
-  if ! grep -qF "[design-approved]" "$1"; then
-    echo "commit blocked: docs/design/** changed without [design-approved] in the message." >&2
-    echo "Design edits are owner-approved only (R3). Revert them, or the owner lands them with the token." >&2
-    exit 1
+#
+# GATED_PATHS: space-separated grep patterns matched against staged paths.
+# Design values that live in code (an Android ui/theme/, a tokens.css) belong
+# here too - the skill fills this in from the interview, and editing this line
+# is sanctioned customization, not drift. Unanchored patterns match anywhere
+# in the path, so "/ui/theme/" covers any package depth.
+GATED_PATHS="^docs/design/"
+staged=$(git diff --cached --name-only)
+for p in $GATED_PATHS; do
+  if printf '%s\n' "$staged" | grep -q "$p"; then
+    if ! grep -qF "[design-approved]" "$1"; then
+      echo "commit blocked: design-gated path ($p) changed without [design-approved] in the message." >&2
+      echo "Design edits are owner-approved only (R3). Revert them, or the owner lands them with the token." >&2
+      exit 1
+    fi
+    break
   fi
-fi
+done
 exit 0

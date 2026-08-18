@@ -42,7 +42,10 @@ fails it on: CLAUDE.md over cap or using imports, a broken rules section, a
 done marker left in TODO.md, a malformed TODO, DONE, or SETTLED row, a
 legacy file, a referenced path that does not exist, a missing required
 section, or an unfilled template token. The commit-msg hook blocks changes
-under `docs/design/` unless the message contains `[design-approved]`.
+under `docs/design/` - and any design-gated code path listed on its
+`GATED_PATHS` line, e.g. an Android `/ui/theme/` package - unless the message
+contains `[design-approved]`. Design values living in code are the design;
+the gate follows the values.
 
 Each run appends a row to `docs/doc-lint-log.csv` with sizes, rule count,
 cap value, and whether the commit touched docs. The trend is how you judge

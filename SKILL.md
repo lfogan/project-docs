@@ -42,15 +42,17 @@ CHANGELOG*.md, scripts/doc-lint.sh.
      that lags is silent until a check misbehaves. Detect: diff the repo's
      scripts/doc-lint.sh, .githooks/pre-commit and .githooks/commit-msg
      against this skill's copies - for doc-lint.sh compare with the
-     `BUDGET_CLAUDE=`/`RULES_CAP=` default lines excluded (a Step 1 cap
-     override is sanctioned customization, not drift; report it as the
-     current cap, never as a finding); list files the current skill
+     `BUDGET_CLAUDE=`/`RULES_CAP=` default lines excluded, and for commit-msg
+     with the `GATED_PATHS=` line excluded (a Step 1 cap override or Q6
+     gated-path list is sanctioned customization, not drift; report the
+     current values, never a finding); list files the current skill
      generates that are missing (DONE.md is the common one - older
      deployments predate it); flag doc header comments contradicting current
      templates (a TODO.md header still saying done rows are deleted). Offer
      each finding as its own item. A script/hook refresh is a verbatim
-     recopy EXCEPT the cap lines, which keep the deployed values; a header
-     refresh touches the comment block only, never the owner's rows.
+     recopy EXCEPT the cap and GATED_PATHS lines, which keep the deployed
+     values; a header refresh touches the comment block only, never the
+     owner's rows.
   2. **Generate what is missing**, each absent file its own consent item.
 - **Nothing** → greenfield, continue.
 
@@ -69,7 +71,7 @@ already answers.
 | 3 | Build/test/run commands + where code lives? | `{{COMMANDS_AND_LAYOUT}}` |
 | 4 | Tech locked? Unknowns = `TBD - locked when <trigger>` row + a Blocked-on-owner TODO row, never a guess. | `{{STACK_ROWS}}` |
 | 5 | Evidence standard - what counts as verified here? | `{{EVIDENCE_STANDARD}}` |
-| 6 | Design surface? (handoff/mockups to vendor beside DESIGN.md, or seed text, or none) | `{{DESIGN_SEED}}` |
+| 6 | Design surface? (handoff/mockups to vendor beside DESIGN.md, or seed text, or none) AND which code paths are design-gated? Design values living in code (theme files, tokens) are the design - propose from inspection (Android: the `/ui/theme/` package; web: a tokens/theme stylesheet), and write approved patterns into the copied commit-msg hook's `GATED_PATHS` line. None → the line keeps its `^docs/design/` default. | `{{DESIGN_SEED}}`, hook `GATED_PATHS` |
 | 7 | First task? | `{{FIRST_TASK}}` |
 | 8 | Does shipping involve state outside the repo (app store, signing keys, hosting, domains, accounts)? If yes: what is already set up? Never shipped → do NOT ask for per-release steps (the owner cannot know them); the template already carries first-ship seed rows - mark what Q8 found done, fill `{{RELEASE_SETUP}}` with owner-specific extras only (none → delete the token line), and fill `{{RELEASE_STEPS}}` with `TBD - locked at first ship`. | `{{RELEASE_SETUP}}`, `{{RELEASE_STEPS}}` |
 | 9 | Which environments must this be proven against (devices, browsers, OS/runtime versions)? Seed every one named, using `➖` for those never run - the never-run rows are the point. | `{{COVERAGE_ROWS}}` |
@@ -100,7 +102,8 @@ visible trend event.
 Always: CLAUDE.md, AGENTS.md, TODO.md, DONE.md, docs/SETTLED.md,
 scripts/doc-lint.sh (verbatim copy from this skill's scripts/, then apply any
 owner cap override), .githooks/pre-commit and .githooks/commit-msg (verbatim
-copies from scripts/hooks/), and .claude/commands/lint-skip.md (verbatim from
+copies from scripts/hooks/, then apply the Q6 `GATED_PATHS` answer to
+commit-msg), and .claude/commands/lint-skip.md (verbatim from
 templates/LINT-SKIP-COMMAND.template.md - the owner's one-commit skip valve;
 agents never create its marker or invoke it).
 
@@ -155,6 +158,10 @@ preserves everything deleted.
 4. **SETTLED harvest.** Search legacy LEDGER + CHANGELOG for withdrawn findings,
    owner-rejected proposals, "do not re-raise" markers. Propose Don't-lines;
    owner multi-selects. Expect a handful, not dozens.
+   Also grep code comments for legacy citations (LEDGER #n, PLAN row refs) -
+   they stop resolving once the file is deleted. Keep the reason text, delete
+   the dead number; a citation guarding a "do not re-raise" adjudication
+   becomes a SETTLED candidate in the same batch.
 5. **TODO and DONE.** TODO.md carries active work only. Legacy markers are
    rewritten to the lint's lowercase vocabulary during the move - [Todo] →
    [todo], [In-Progress] → [in-progress]; [Partial] → a "verify <x>" row

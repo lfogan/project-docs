@@ -190,6 +190,42 @@ case $rc in
   *) result "skip marker: one commit through, then gated again" 0 "setup failure rc=$rc";;
 esac
 
+# 14. gated code paths: a customized GATED_PATHS line gates theme code like
+#     docs/design/, and non-gated code stays ungated
+rm -rf "$TMP/repo2"; mkdir -p "$TMP/repo2"
+cp -r "$ROOT/tests/fixtures/good/." "$TMP/repo2/"
+mkdir -p "$TMP/repo2/scripts" "$TMP/repo2/.githooks"
+cp "$ROOT/scripts/doc-lint.sh" "$TMP/repo2/scripts/"
+cp "$ROOT/scripts/hooks/pre-commit" "$ROOT/scripts/hooks/commit-msg" "$TMP/repo2/.githooks/"
+sed -i 's|^GATED_PATHS="\^docs/design/"|GATED_PATHS="^docs/design/ /ui/theme/"|' "$TMP/repo2/.githooks/commit-msg"
+chmod +x "$TMP/repo2/.githooks/pre-commit" "$TMP/repo2/.githooks/commit-msg" 2>/dev/null
+(
+  cd "$TMP/repo2" || exit 9
+  git init -q .
+  git config user.email test@test && git config user.name test
+  git config core.hooksPath .githooks
+  git add -A
+  git commit -qm "init [design-approved]" || exit 1
+  mkdir -p app/src/main/java/com/x/ui/theme
+  echo "val Sodium = 0xFFCCFF00" > app/src/main/java/com/x/ui/theme/Color.kt
+  git add -A
+  git commit -qm "retint, no token" 2>/dev/null && exit 2
+  git commit -qm "retint [design-approved]" || exit 3
+  echo "fun main() {}" > app/Main.kt
+  git add -A
+  git commit -qm "plain code, no token" || exit 4
+  exit 0
+)
+rc=$?
+case $rc in
+  0) result "gated code paths: theme gated, plain code free" 1 "";;
+  1) result "gated code paths: theme gated, plain code free" 0 "init commit blocked unexpectedly";;
+  2) result "gated code paths: theme gated, plain code free" 0 "theme edit committed WITHOUT token";;
+  3) result "gated code paths: theme gated, plain code free" 0 "theme edit with token was blocked";;
+  4) result "gated code paths: theme gated, plain code free" 0 "non-gated code blocked - false positive";;
+  *) result "gated code paths: theme gated, plain code free" 0 "setup failure rc=$rc";;
+esac
+
 echo "----"
 echo "$pass passed, $failn failed"
 [ "$failn" -eq 0 ] && echo "ALL PASS"

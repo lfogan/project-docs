@@ -32,7 +32,7 @@
      one to add one. -->
 R1: Evidence = commands run + output observed. {{EVIDENCE_STANDARD}}
 R2: A subagent claim is unverified until re-run first-hand - unverified means [partial], never done.
-R3: Never edit docs/design/** - propose a diff and stop; landing an approved change requires [design-approved] in the commit message. <!-- delete this R-line (and renumber nothing) when no design surface exists -->
+R3: Never edit docs/design/** or the design-gated code paths in .githooks/commit-msg GATED_PATHS - propose a diff and stop; landing an approved change requires [design-approved] in the commit message. <!-- delete this R-line (and renumber nothing) when no design surface exists -->
 R4: Never bypass the pre-commit hook (--no-verify) or edit .githooks/.
 R5: Grep docs/SETTLED.md before raising an audit finding or re-proposing a change.
 R6: Write a SETTLED line only when the owner rejects a proposal or a finding proves wrong - never to log a choice.
