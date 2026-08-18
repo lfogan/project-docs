@@ -40,23 +40,21 @@ Conclusions carried into v2:
 
 The drain rule is what keeps TODO.md readable every session, but deletion and
 archival achieve that equally well: the cost that matters is the file that is
-READ, and DONE.md never is. What archiving buys is a whole class of work that
-would otherwise have NO record at all.
+READ, and DONE.md never is. Archival buys two things deletion does not.
 
-"Git is the history" holds only for work that produces a commit. A large share
-of real agent work does not: a device walk that passes, an investigation
-concluding no change is needed, a verification pass, an audit that finds
-nothing, a question answered. Deleting those rows does not move the fact into
-git — it destroys it, and the same investigation gets commissioned again in a
-month. This is the same class as docs/agent/release.md (state git cannot show)
-but wider, and it is the primary reason DONE.md exists. A row is a second copy
-only when a commit exists behind it; for everything else it is the original.
+First, a task-level index. Most completed tasks do produce a commit, so their
+row is a second copy — but a minority do not (a device walk that passes, a
+verification pass, an audit that finds nothing), and for those the row is the
+only surviving record. Deleting it does not move the fact into git; it
+destroys it. Second, the owner reads the accumulated list as evidence of
+progress, which is why the file is never rotated, trimmed, or summarised.
 
-Two consequences. A row with no commit behind it must stand alone — name what
-was concluded, not "see the commit" — because there is nothing to follow. And
-DONE.md is never rotated, trimmed, or summarised: the owner's stated use
-includes reading the accumulated list as evidence of progress, which a
-periodically-pruned file cannot provide. Growth is the feature here.
+The entry rule carries the whole weight of keeping this honest: nothing is
+written into DONE.md directly. A row arrives only by having been a TODO row
+marked [done] and moved verbatim. Without that rule the "some work leaves no
+commit" observation reads as a licence to log activity — questions answered,
+files explained — and the archive fills with things that were never tasks.
+State the entry rule, not the observation.
 
 The risk is precise, and it is not size: v1's CHANGELOG.md began as a list of
 what happened and ended as 258 KB of What/Why/Evidence/Limits prose the owner
