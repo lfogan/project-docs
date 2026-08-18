@@ -32,7 +32,7 @@
      one to add one. -->
 R1: Evidence = commands run + output observed. {{EVIDENCE_STANDARD}}
 R2: A subagent claim is unverified until re-run first-hand - unverified means [partial], never done.
-R3: Never edit docs/design/** - propose a diff and stop; landing an approved change requires [design-approved] in the commit message. <!-- delete this R-line (and renumber nothing) when no design surface exists -->
+R3: Never edit docs/design/** - propose a diff and stop; landing an approved change requires [design-approved] in the commit message.
 R4: Never bypass the pre-commit hook (--no-verify) or edit .githooks/.
 R5: Grep docs/SETTLED.md before raising an audit finding or re-proposing a change.
 R6: Write a SETTLED line only when the owner rejects a proposal or a finding proves wrong - never to log a choice.
@@ -43,10 +43,6 @@ R7: No secrets, tokens, dumps, or third-party personal data in any doc or commit
 
 - TODO.md - active work; read when picking or landing work. Done rows move verbatim to DONE.md (never read wholesale; grep to check whether something was already done).
 - docs/SETTLED.md - the record of "no".
-<!-- Conditional bullets - the lint fails on pointers to paths that do not
-     exist. Delete the docs/agent/ line when no docs/agent/ file was
-     generated; delete the DESIGN.md line (and R3 above) when there is no
-     design surface. -->
 - docs/agent/ - activity guides; read the matching file before that work.{{POINTER_EXTRAS}}
 - docs/design/DESIGN.md - read before any UI, copy, or design work; the source of truth, assets beside it (R3).
 - History and rationale: `git log --grep=<term>` before re-deriving old reasoning.
