@@ -36,9 +36,22 @@ fresh; printf 'stray prose line\n' >> "$TMP/case/tmp.$$"; rm -f "$TMP/case/tmp.$
 sed -i '/^R7:/a this is not an R line' "$TMP/case/CLAUDE.md"
 run ""; expect "non-R line in Rules fails" 1 "non-R line"
 
-# 5. TODO drain
+# 5. TODO drain — both marker spellings must be caught
 fresh; printf -- '- [x] finished thing\n' >> "$TMP/case/TODO.md"
-run ""; expect "done row in TODO fails" 1 "done row still in TODO.md"
+run ""; expect "done row in TODO fails ([x])" 1 "done row still in TODO.md"
+
+fresh; printf -- '- shipped the thing [done 2026-08-17]\n' >> "$TMP/case/TODO.md"
+run ""; expect "done row in TODO fails ([done])" 1 "done row still in TODO.md"
+
+# 5a. DONE.md shape: verbatim one-line rows only, never a changelog
+fresh; printf 'What: a long story about the change\n' >> "$TMP/case/DONE.md"
+run ""; expect "changelog key in DONE.md fails" 1 "changelog key"
+
+fresh; printf 'a bare prose line with no row marker\n' >> "$TMP/case/DONE.md"
+run ""; expect "non-row line in DONE.md fails" 1 "not a task row"
+
+fresh; awk 'BEGIN{ printf "- "; for(i=0;i<310;i++) printf "x"; printf "\n" }' >> "$TMP/case/DONE.md"
+run ""; expect "over-long DONE.md row fails" 1 "> 300"
 
 # 5b. the drain check is scoped to TODO.md: a release record in docs/agent/
 #     carries dated done-marks for work git cannot show, and must lint clean.
@@ -73,10 +86,12 @@ ok=1; det=""
 [ "$RC" -eq 0 ] || { ok=0; det="exit=$RC"; }
 [ -f "$TMP/case/docs/doc-lint-log.csv" ] || { ok=0; det="$det; no csv"; }
 n=$(awk -F, 'NR==1{print NF}' "$TMP/case/docs/doc-lint-log.csv" 2>/dev/null)
-[ "$n" = "10" ] || { ok=0; det="$det; header fields=$n want 10"; }
+[ "$n" = "11" ] || { ok=0; det="$det; header fields=$n want 11"; }
 rows=$(grep -c . "$TMP/case/docs/doc-lint-log.csv" 2>/dev/null)
 [ "$rows" = "2" ] || { ok=0; det="$det; rows=$rows want 2"; }
-result "CSV logged with 10 columns" "$ok" "$det"
+dr=$(awk -F, 'NR==2{print $6}' "$TMP/case/docs/doc-lint-log.csv" 2>/dev/null)
+[ "$dr" = "1" ] || { ok=0; det="$det; done_rows=$dr want 1"; }
+result "CSV logged with 11 columns incl. done_rows" "$ok" "$det"
 
 # 12. hooks end-to-end in a real repo
 rm -rf "$TMP/repo"; mkdir -p "$TMP/repo"

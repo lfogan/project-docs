@@ -20,9 +20,14 @@ rest.
 ## Principles
 
 - **One fact, one home.** Design → `docs/design/DESIGN.md` (owner-approved
-  edits only) · behavior → tests · task state → `TODO.md` · rejections →
-  `docs/SETTLED.md` · stories → commit message bodies. Git is the history —
-  there is no CHANGELOG, no LEDGER, no PLAN, and the lint forbids them.
+  edits only) · behavior → tests · active task state → `TODO.md` · finished
+  rows → `DONE.md` · rejections → `docs/SETTLED.md` · stories → commit message
+  bodies. Git is the history — there is no CHANGELOG, no LEDGER, no PLAN, and
+  the lint forbids them.
+- **Cold files absorb; they do not rewrite.** A finished row moves into
+  `DONE.md` verbatim — single line, no What/Why/Evidence block, 300-byte
+  ceiling, all lint-enforced. That shape is what stops an archive becoming
+  the 258 KB changelog nobody read.
 - **Enforcement ladder.** deny-hook > test > lint check > CLAUDE.md rule >
   `docs/agent/` note. A prose rule is last-resort debt; the healthy rule
   count trends *down* as lessons graduate into tests and hooks.
@@ -38,7 +43,8 @@ rest.
 | File | Purpose |
 |---|---|
 | `CLAUDE.md` | The contract: product line, commands & layout, stack, ≤25 R-rules, pointers |
-| `TODO.md` | Open work only — done rows are deleted in the landing commit |
+| `TODO.md` | Active work only ([todo]/[partial]/[in-progress]) — read every session |
+| `DONE.md` | Finished rows, moved verbatim from `TODO.md`. Append-only, never read wholesale, so it costs no context |
 | `docs/SETTLED.md` | The record of "no": owner-rejected proposals and withdrawn findings, one Don't-line each, so cold audits stop re-raising them |
 | `docs/design/DESIGN.md` | The single design source of truth; edits land only with `[design-approved]` in the commit message |
 | `docs/agent/*.md` | On-demand activity guides (e.g. device QA lore), read before that kind of work |
@@ -67,7 +73,7 @@ system (PLAN/LEDGER/CHANGELOG) to migrate: the retrofit triages old ledger
 rows into tests, rules, SETTLED lines, or deletion — with batched owner
 approval at every destructive step. Everything deleted stays in git.
 
-Tests: `sh tests/run-tests.sh` (12 checks, including an end-to-end hook test
+Tests: `sh tests/run-tests.sh` (17 checks, including an end-to-end hook test
 in a throwaway repo).
 
 ## License

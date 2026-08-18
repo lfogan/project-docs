@@ -2,8 +2,10 @@
 
 ## Now
 
-- first task
+- first task [todo]
 
 ## Next
+
+- second task [partial] — gap: not verified on device
 
 ## Blocked on owner

@@ -72,11 +72,37 @@ if [ -f docs/SETTLED.md ]; then
   emit "$out"
 fi
 
-# 3. TODO drain: done work is DELETED, not marked. Git is the archive; a
-#    [Done]/[x] row that persists is the old PLAN-graveyard coming back.
+# 3a. TODO drain: a finished row leaves TODO.md the moment it is marked, moved
+#     verbatim to DONE.md. A [done] row that lingers is the PLAN graveyard
+#     coming back — TODO.md is read every session, so its size is the cost.
 if [ -f TODO.md ]; then
-  out=$(grep -nE '\[(x|X|Done)\]' TODO.md 2>/dev/null \
-    | sed 's/^/doc-lint: done row still in TODO.md (delete it — git remembers): /')
+  out=$(grep -nE '\[[xX]\]|\[[Dd]one|\[DONE' TODO.md 2>/dev/null \
+    | sed 's/^/doc-lint: done row still in TODO.md (move it verbatim to DONE.md): /')
+  emit "$out"
+fi
+
+# 3b. DONE.md stays an archive of rows, not a changelog. Rows arrive verbatim,
+#     one line each. The two things that turned v1's task list into 258 KB of
+#     unread prose were multi-line entries and What/Why/Evidence/Limits keys,
+#     so both are rejected here. Length cap makes narrative impossible rather
+#     than merely discouraged.
+if [ -f DONE.md ]; then
+  out=$(awk '
+    {
+      if (incmt) { if (index($0, "-->")) incmt = 0; next }
+      if ($0 ~ /^[[:space:]]*$/ || $0 ~ /^#/) next
+      if (index($0, "<!--")) { if (!index($0, "-->")) incmt = 1; next }
+      if ($0 ~ /^(What|Why|Evidence|Limits|Origin|Changes):/) {
+        print "doc-lint: DONE.md line " NR " uses a changelog key (" $1 ") — rows move verbatim, they do not grow a story"
+        next
+      }
+      if ($0 !~ /^- /) {
+        print "doc-lint: DONE.md line " NR " is not a task row (must start \"- \"): " substr($0, 1, 50)
+        next
+      }
+      if (length($0) > 300)
+        print "doc-lint: DONE.md line " NR " is " length($0) " chars (> 300) — move rows verbatim, do not enrich them"
+    }' DONE.md)
   emit "$out"
 fi
 
@@ -122,7 +148,7 @@ if [ -f CLAUDE.md ]; then
 fi
 
 # 7. No unfilled template tokens in any v2 doc file.
-out=$(grep -n '{{[A-Za-z_]*}}' CLAUDE.md AGENTS.md TODO.md docs/SETTLED.md \
+out=$(grep -n '{{[A-Za-z_]*}}' CLAUDE.md AGENTS.md TODO.md DONE.md docs/SETTLED.md \
       docs/design/DESIGN.md docs/agent/*.md /dev/null 2>/dev/null \
   | sed 's/^/doc-lint: unfilled template token: /')
 emit "$out"
@@ -132,9 +158,10 @@ emit "$out"
 #    DOWN (lessons graduating to tests/hooks), docs_touched share healthy DOWN
 #    (less ceremony), settled_lines slow UP only on real owner "no"s.
 if [ "${DOC_LINT_LOG:-1}" != "0" ]; then
-  cb=0; tb=0; sl=0; ab=0; rc=0; dt="-"
+  cb=0; tb=0; db=0; sl=0; ab=0; rc=0; dt="-"
   [ -f CLAUDE.md ] && cb=$(wc -c < CLAUDE.md | tr -d ' ')
   [ -f TODO.md ] && tb=$(wc -c < TODO.md | tr -d ' ')
+  [ -f DONE.md ] && db=$(grep -c "^- " DONE.md)
   [ -f docs/SETTLED.md ] && sl=$(grep -c "^- Don" docs/SETTLED.md)
   ab=$(cat docs/agent/*.md 2>/dev/null | wc -c | tr -d ' ')
   [ -f CLAUDE.md ] && rc=$(grep -cE '^R[0-9]+: ' CLAUDE.md)
@@ -147,8 +174,8 @@ if [ "${DOC_LINT_LOG:-1}" != "0" ]; then
     fi
   fi
   mkdir -p docs 2>/dev/null
-  [ -f docs/doc-lint-log.csv ] || echo "date,exit,findings,claude_bytes,todo_bytes,settled_lines,agent_bytes,rules_count,rules_cap,docs_touched" > docs/doc-lint-log.csv 2>/dev/null
-  echo "$(date +%Y-%m-%d),$fail,$findings,$cb,$tb,$sl,$ab,$rc,$RULES_CAP,$dt" >> docs/doc-lint-log.csv 2>/dev/null
+  [ -f docs/doc-lint-log.csv ] || echo "date,exit,findings,claude_bytes,todo_bytes,done_rows,settled_lines,agent_bytes,rules_count,rules_cap,docs_touched" > docs/doc-lint-log.csv 2>/dev/null
+  echo "$(date +%Y-%m-%d),$fail,$findings,$cb,$tb,$db,$sl,$ab,$rc,$RULES_CAP,$dt" >> docs/doc-lint-log.csv 2>/dev/null
 fi
 
 exit "$fail"

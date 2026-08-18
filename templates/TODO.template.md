@@ -1,20 +1,21 @@
 # TODO — {{PROJECT_NAME}}
 
-<!-- Open work only. Done = DELETE the row in the landing commit — git is the
-     archive; the lint fails any [Done]/[x] marker. An in-progress row names
-     its branch + next concrete action (a session can die anytime, and
-     unlanded work has no other home). Owner decisions go under Blocked on
-     owner, phrased as the question to answer.
-     ONE exception to the delete rule, and it is not an exception at all:
-     work whose completion leaves no trace in the repo — store console state,
-     signing keys, accounts, DNS, review submissions — is invisible to git,
-     so deleting its row really would lose the fact. That work is not a TODO
-     row: it belongs in docs/agent/release.md with a dated done mark. If the
-     completion is visible in code, a test, or a file, delete the row. -->
+<!-- Active work only: [todo] and [partial]. Read every session.
+     The moment a task is [done], MOVE its row verbatim to DONE.md in the
+     landing commit — cut and paste, no rewriting, no enrichment, no
+     "Evidence:" block. The lint fails a [done] row left here.
+     [partial] names the gap in the row itself; it beats a fake [done].
+     An [in-progress] row names its branch + next concrete action — a session
+     can die anytime, and unlanded work has no other home.
+     Owner decisions go under Blocked on owner, phrased as the question.
+     Setup that leaves no trace in the repo — store console state, signing
+     keys, accounts, DNS, review submissions — also gets a dated line in
+     docs/agent/release.md, which IS read before release work. DONE.md never
+     is, so an archived row alone will not be found when it is needed. -->
 
 ## Now
 
-- {{FIRST_TASK}}
+- {{FIRST_TASK}} [todo]
 
 ## Next
 

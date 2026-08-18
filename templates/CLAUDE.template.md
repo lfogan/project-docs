@@ -44,7 +44,7 @@ R7: No secrets, tokens, dumps, or third-party personal data in any doc or commit
 
 ## Pointers
 
-- TODO.md — open work; read when picking or landing work.
+- TODO.md — active work; read when picking or landing work. A [done] row moves verbatim to DONE.md, which is never read wholesale — grep it only to check whether something was already attempted.
 - docs/SETTLED.md — the record of "no".
 - docs/agent/ — activity guides; read the matching file before that work.{{POINTER_EXTRAS}}
 - docs/design/DESIGN.md — read before any UI, copy, or design-touching work; the source of truth, assets beside it (R3).

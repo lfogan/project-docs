@@ -12,9 +12,15 @@ Templates in `templates/`, lint in `scripts/doc-lint.sh`, git hooks in
 Principles the generated system encodes — do not weaken them while filling:
 
 - **One fact, one home.** Design → docs/design/DESIGN.md · behavior → tests ·
-  task state → TODO.md · rejections → docs/SETTLED.md · stories → commit
-  message bodies. Nothing is recorded twice; git is the history. No CHANGELOG,
-  no LEDGER, no PLAN — the lint forbids them.
+  active task state → TODO.md · finished task rows → DONE.md (verbatim, never
+  read wholesale) · rejections → docs/SETTLED.md · stories → commit message
+  bodies. Nothing is recorded twice; git is the history. No CHANGELOG, no
+  LEDGER, no PLAN — the lint forbids them.
+- **Hot files are small because cold files absorb, not because facts vanish.**
+  TODO.md carries only [todo]/[partial]/[in-progress]; the moment a row is
+  [done] it moves to DONE.md unchanged. Moving is a cut-and-paste, never a
+  rewrite — a row that grows a What/Why/Evidence block on the way is a
+  changelog being reborn, and the lint rejects it.
 - **Enforcement ladder.** deny-hook > test > lint check > CLAUDE.md R-line >
   docs/agent/ note. A prose rule is last-resort debt; healthy rules_count
   trends down.
@@ -73,7 +79,7 @@ visible trend event.
 
 ## Step 2 — generate
 
-Always: CLAUDE.md, AGENTS.md, TODO.md, docs/SETTLED.md,
+Always: CLAUDE.md, AGENTS.md, TODO.md, DONE.md, docs/SETTLED.md,
 scripts/doc-lint.sh (verbatim copy from this skill's scripts/, then apply any
 owner cap override), .githooks/pre-commit and .githooks/commit-msg (verbatim
 copies from scripts/hooks/).
@@ -123,13 +129,17 @@ preserves everything deleted.
 4. **SETTLED harvest.** Search v1 LEDGER + CHANGELOG for withdrawn findings,
    owner-rejected proposals, "do not re-raise" markers. Propose Don't-lines;
    owner multi-selects. Expect a handful, not dozens.
-5. **TODO.** Carry open work only: [Todo]/[In-Progress] rows, [Partial] →
-   "verify <x>" row, Decisions Needed → Blocked on owner. Everything [Done]
-   is dropped — git has it, EXCEPT done rows recording state outside the repo
-   (store console, signing keys, accounts, hosting, review submissions).
-   Those are invisible to git: harvest them into docs/agent/release.md as
-   dated one-time-setup lines before dropping the rows. Scan the v1 PLAN and
-   CHANGELOG for them specifically — a release phase is where they hide.
+5. **TODO and DONE.** TODO.md carries active work only: [Todo]/[In-Progress]
+   rows, [Partial] → a "verify <x>" row, Decisions Needed → Blocked on owner.
+   Every [Done] row moves verbatim into DONE.md — one line each, in the v1
+   PLAN's own order, no rewriting or enrichment. A v1 PLAN cell over 300
+   chars is trimmed to its task text (the evidence prose stays in git), which
+   is the only editing permitted during the move.
+   Additionally: done rows recording state OUTSIDE the repo (store console,
+   signing keys, accounts, hosting, review submissions) also get a dated line
+   in docs/agent/release.md. DONE.md is never read, so an archived row alone
+   will not be found when a release session needs it. Scan the v1 PLAN and
+   CHANGELOG for these specifically — a release phase is where they hide.
 6. **Design.** docs/design/DESIGN.md seeded by the owner or from the handoff;
    existing handoff assets stay beside it under the same gate; v1
    docs/design/STATUS.md and its "historical baseline" doctrine retire with
