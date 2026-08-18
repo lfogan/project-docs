@@ -9,13 +9,19 @@
 
 ## One-time setup
 
-<!-- What was done, where it lives, date. Never shipped yet: seed the rows
-     below unmarked - each earns its [done YYYY-MM-DD] as it happens. For an
-     Android app that means, at minimum: upload keystore created + alias/path
-     recorded here (never the password) · Play Console developer account ·
-     app created in the console · internal testing track opened · store
-     listing drafted · content rating questionnaire · data safety form.
-     Delete rows that do not apply; add platform rows this list cannot know. -->
+<!-- What was done, where it lives, date. Unmarked = not done yet; a row
+     earns its [done YYYY-MM-DD] inline as it happens. Never shipped on
+     Android: keep the seed rows below, delete ones that do not apply, add
+     platform rows this list cannot know, and mark anything already done.
+     Shipped before, or not a store platform: replace the seeds with what Q8
+     found. -->
+- Upload keystore created; alias + file path recorded here (never the password)
+- Play Console developer account registered
+- App created in Play Console (package id recorded under Facts below)
+- Internal testing track opened, first AAB uploaded
+- Store listing drafted (title, short + full description, screenshots)
+- Content rating questionnaire completed
+- Data safety form completed
 {{RELEASE_SETUP}}
 
 ## Per-release steps

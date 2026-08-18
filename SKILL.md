@@ -71,7 +71,7 @@ already answers.
 | 5 | Evidence standard - what counts as verified here? | `{{EVIDENCE_STANDARD}}` |
 | 6 | Design surface? (handoff/mockups to vendor beside DESIGN.md, or seed text, or none) | `{{DESIGN_SEED}}` |
 | 7 | First task? | `{{FIRST_TASK}}` |
-| 8 | Does shipping involve state outside the repo (app store, signing keys, hosting, domains, accounts)? If yes: what is already set up? Never shipped → do NOT ask for per-release steps (the owner cannot know them); seed `{{RELEASE_SETUP}}` from the template's first-ship checklist with anything already done marked, and fill `{{RELEASE_STEPS}}` with `TBD - locked at first ship`. | `{{RELEASE_SETUP}}`, `{{RELEASE_STEPS}}` |
+| 8 | Does shipping involve state outside the repo (app store, signing keys, hosting, domains, accounts)? If yes: what is already set up? Never shipped → do NOT ask for per-release steps (the owner cannot know them); the template already carries first-ship seed rows - mark what Q8 found done, fill `{{RELEASE_SETUP}}` with owner-specific extras only (none → delete the token line), and fill `{{RELEASE_STEPS}}` with `TBD - locked at first ship`. | `{{RELEASE_SETUP}}`, `{{RELEASE_STEPS}}` |
 | 9 | Which environments must this be proven against (devices, browsers, OS/runtime versions)? Seed every one named, using `➖` for those never run - the never-run rows are the point. | `{{COVERAGE_ROWS}}` |
 
 `{{PROJECT_NAME}}` comes from the repo/product name - never asked.
