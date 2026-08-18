@@ -1,141 +1,82 @@
-# project-docs methodology - rationale and evidence
+# project-docs methodology
 
-Loaded on demand only. The generated files are the runtime authority.
+Loaded on demand only. The generated files are the runtime authority; this
+file records why they are shaped the way they are.
 
-## The legacy post-mortem (why the system is shaped like this)
+## Design rules
 
-The legacy system (CLAUDE.md + PLAN + LEDGER + CHANGELOG + extract/pointer lint) was measured
-across 7 live repos on 2026-08-17. The pilot repo (hard-graft, an Android app
-5 days old, 140 commits, 14.8k lines of Kotlin) showed:
+1. Advisory checks do not work. Agents ignore warnings and obey failing exit
+   codes, so every lint check fails the commit or does not exist.
+2. Per-file byte budgets fail when content can move between files: the capped
+   file stays green while the total grows. So the cap sits on the one file
+   that always loads, and cold files are uncapped.
+3. A rule a test or hook can enforce is written as that test or hook, not as
+   prose. A prose rule earns its place only when nothing mechanical can catch
+   the violation and an agent would commit it by default.
+4. Each fact has exactly one home, so no two files can disagree and no
+   precedence order is needed.
+5. Git records what was done, not what was declined. Rejected proposals and
+   withdrawn findings go in docs/SETTLED.md so cold audits stop re-raising
+   them.
 
-| Measurement | Value |
+## Caps
+
+The generated CLAUDE.md skeleton is about 2.3 KB; commands, stack rows, and
+a realistic rule set bring it to roughly 4.5 KB. The cap is 6000 bytes:
+headroom to work in, tight enough that narrative cannot accumulate. 25 rules
+is an alarm level; around 10 is the expected steady state. Override either
+by editing BUDGET_CLAUDE or RULES_CAP in the generated doc-lint.sh. The lint
+logs the cap per run, so a raise is visible in the trend.
+
+## TODO and DONE
+
+TODO.md is read every session, so it holds only active rows. A finished row
+moves to DONE.md verbatim in the landing commit. Archiving rather than
+deleting keeps a record for tasks that produce no commit (a passing device
+walk, a verification pass, an audit that finds nothing), and the owner reads
+the accumulated list as a progress record, so DONE.md is never rotated,
+trimmed, or summarised.
+
+Two lint rules stop the archive from becoming a changelog: rows are single
+lines under 300 characters with no What/Why/Evidence keys, and nothing is
+written to DONE.md directly. A row arrives only by having been a TODO row.
+
+## Work that completes outside the repo
+
+Store console state, signing keys, accounts, DNS, and review submissions
+leave no trace in git, so their record lives in docs/agent/release.md as
+dated lines that are never deleted. The test for where a fact belongs:
+could a stranger reading the repo see that it was done? If yes, delete the
+TODO row and rely on git. If no, it goes in the release record.
+
+## What each check prevents
+
+| Check | Prevents |
 |---|---|
-| Total doc bytes | 468 KB (vs 690 KB of code) |
-| Always-loaded set (CLAUDE.md + PLAN.md) | ~105 KB per work-picking session |
-| CLAUDE.md growth | +57% in 3 days; two-thirds of it decision extracts |
-| Decision retirement | 1 of 78 ledger rows, ever |
-| Directive-count warning | fired 42/42 runs; count rose 76→107 anyway |
-| Hard lint failures | 4, each fixed by the very next run |
-| Commits touching doc files | 99 of 140 (71%) |
-| Extracts duplicating an existing test | ≥5 (named ArchitectureTest/ContrastTest inline) |
+| 1 cap + no imports | unbounded growth of the always-loaded file |
+| 2a rules grammar + cap | rule sprawl, and prose smuggled into the rules section |
+| 2b SETTLED grammar | narrative growing where one-line entries belong |
+| 3a TODO drain | finished rows piling up in the file every session reads |
+| 3b DONE shape | the archive growing stories instead of rows |
+| 3c TODO markers | rows whose state the next session cannot tell |
+| 4 forbidden legacy files | CHANGELOG/LEDGER/PLAN growing back |
+| 5 paths resolve | pointers to files that do not exist |
+| 6 required sections | a generated CLAUDE.md missing its commands section |
+| 7 unfilled tokens | broken generation passing silently |
+| commit-msg design gate | design edits landing without owner approval |
 
-Conclusions carried into now:
+## The trend log
 
-1. **Advisory checks change nothing; hard-failing checks are obeyed same-day.**
-   Same agent, same week, both behaviors observed. The redesign bans warnings.
-2. **Per-file budgets get satisfied by relocation** (prune into CHANGELOG,
-   rotate CHANGELOG into archives - the origin repo sat at 96%/99.7% of two
-   budgets, green, with 652 KB total). The redesign caps the only thing that loads.
-3. **A rule a test can enforce should be a test.** The repo already had the
-   tests; the prose was a second copy that could (and did) drift.
-4. **Four homes per fact ⇒ documented precedence ladders and "knowingly
-   ahead of source" annotations.** now: one fact, one home; nothing can
-   disagree.
-5. **Git cannot record what was declined.** The one irreplaceable legacy content
-   class was "raised and WITHDRAWN, do not re-raise" - cold audits re-raise
-   settled findings forever without it. That class alone survives as
-   docs/SETTLED.md.
+docs/doc-lint-log.csv gets one row per lint run; the pre-commit hook stages
+the row into its commit. Healthy directions: rules_count falling,
+docs_touched share falling, claude_bytes flat and well under cap,
+settled_lines rising only on owner rejections. agent_bytes has no target;
+bytes landing in cold files instead of CLAUDE.md is the intended direction.
 
-## Why DONE.md exists, and the failure it is one step away from
+## Where enforcement runs
 
-The drain rule is what keeps TODO.md readable every session, but deletion and
-archival achieve that equally well: the cost that matters is the file that is
-READ, and DONE.md never is. Archival buys two things deletion does not.
-
-First, a task-level index. Most completed tasks do produce a commit, so their
-row is a second copy - but a minority do not (a device walk that passes, a
-verification pass, an audit that finds nothing), and for those the row is the
-only surviving record. Deleting it does not move the fact into git; it
-destroys it. Second, the owner reads the accumulated list as evidence of
-progress, which is why the file is never rotated, trimmed, or summarised.
-
-The entry rule carries the whole weight of keeping this honest: nothing is
-written into DONE.md directly. A row arrives only by having been a TODO row
-marked [done] and moved verbatim. Without that rule the "some work leaves no
-commit" observation reads as a licence to log activity - questions answered,
-files explained - and the archive fills with things that were never tasks.
-State the entry rule, not the observation.
-
-The risk is precise, and it is not size: the legacy system's CHANGELOG.md began as a list of
-what happened and ended as 258 KB of What/Why/Evidence/Limits prose the owner
-described as "no one will ever read". A row that is rewritten on the way into
-DONE.md is that same file being reborn one entry at a time. So the move is
-verbatim by rule and by lint: single-line rows, no changelog keys, 300-byte
-ceiling per line. Those three make narrative structurally impossible rather
-than merely discouraged - the same trick SETTLED.md's one-line grammar uses.
-
-DONE.md is deliberately uncapped. It has no drain (nothing un-finishes a
-task), but a cap on a never-read file would only force rotation, which is the
-relocation theater the legacy system was built on. Its growth is logged (`done_rows`) so the
-trend is visible without a budget to game.
-
-## The one thing the TODO drain would have lost
-
-Deleting a done row is safe because the work is self-evidencing: the commit,
-the file, and the test prove it happened, so the row is a second copy. That
-argument fails for exactly one class - work whose completion lives OUTSIDE
-the repo: store console state, signing keys enrolled, accounts created,
-domains pointed, review submissions filed. Git cannot show any of it, so the
-tick is the only record and deleting it really does lose the fact.
-
-That class is not task state at all; it is durable setup. It lives in
-docs/agent/release.md with a dated `[done YYYY-MM-DD]` mark that is never
-deleted, while per-release progress stays in TODO.md as a single row naming
-the current step. The lint's drain check is scoped to TODO.md precisely so
-this record can carry done-marks (regression-tested), and docs/agent/ stays
-unpoliced by design.
-
-Test to apply when unsure whether to delete a row: **would a stranger reading
-the repo, with no memory of this session, be able to see that it was done?**
-Yes → delete. No → it belongs in the release record.
-
-## Budget provenance
-
-The CLAUDE.md skeleton is ~2.7 KB. The genuinely hot residue of the pilot
-repo - commands, stack one-liners, and the 8-12 rules that pass the admission
-test (untestable AND default-violated) - prices at ~4.5 KB. 6000 bytes is
-that plus headroom, and roughly 7× smaller than the legacy system's 45,000 ceiling, which
-was derived from an outlier and reachable by relocation. 25 R-lines is an
-alarm line, not a target; ~10 is the expected steady state. Overrides go in
-the generated doc-lint.sh and are logged per run (rules_cap column), so a
-bump is a visible trend event rather than a silent loosening.
-
-## Lint check → observed failure it prevents
-
-| Check | Prevents (observed instance) |
-|---|---|
-| 1 cap + no imports | hot-set regrowth (+57%/3 days); byte-smuggling past the one measured number |
-| 2a rules grammar + cap | directive dilution (76→107 under an ignored warning) |
-| 2b SETTLED grammar | narrative creep - one-line Don'ts make stories impossible |
-| 3a TODO drain | the PLAN graveyard (62 stale [Partial] rows) in the file read every session |
-| 3b DONE.md shape | the archive turning into the legacy system's 258 KB changelog, one enriched row at a time |
-| 3c TODO markers | markerless rows (the pilot retrofit imported them) - ambiguous to the next session: picked up? abandoned? half-done? |
-| 4 forbidden legacy files | regrowth from muscle memory / agents imitating repo history |
-| 5 paths resolve | dangling pointers (4 caught in 5 days; the legacy lint itself shipped one) |
-| 6 required sections | pilot's CLAUDE.md had NO build/test commands and nothing noticed for 5 days |
-| 7 no unfilled tokens | broken generation passing silently |
-| commit-msg design gate | silent edits to the owner's design source of truth |
-
-## Outcome measurement
-
-docs/doc-lint-log.csv, one row per lint run (the pre-commit hook stages the
-row into its commit). Healthy directions:
-
-- `rules_count` **down** - lessons graduating up the enforcement ladder.
-- `docs_touched` share of commits **down** - less ceremony (legacy system: 71%).
-- `claude_bytes` flat, far under cap - a fresh contract near the cap on day
-  one is diagnostic of a problem.
-- `settled_lines` up **slowly and only on owner "no"s**.
-- `agent_bytes` unpoliced by design - bytes landing cold instead of hot is
-  the system working.
-
-## Where enforcement runs, and why
-
-Two thin git hooks via `core.hooksPath`: pre-commit (all lint checks + CSV
-staging) and commit-msg (design gate - it needs the message). Nothing runs
-during editing: the owner chose commit-time-only for development speed. A
-check that depends on an agent remembering to run it has the reliability of a
-rule that depends on an agent remembering to follow it; at the pilot's pace
-(140 commits/5 days) the commit gate fires constantly with zero memory
-dependence. Known bypass: `--no-verify` (R4 forbids it; a missing CSV row
-makes a bypass visible).
+Two hooks installed via `git config core.hooksPath .githooks`: pre-commit
+runs every lint check and stages the CSV row; commit-msg holds the design
+gate, which needs the message. Nothing runs while editing; the owner chose
+commit-time only. `git commit --no-verify` skips both hooks: R4 forbids it,
+and a bypassed commit leaves a gap in the CSV.

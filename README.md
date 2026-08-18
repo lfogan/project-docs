@@ -1,80 +1,62 @@
 # project-docs
 
-A Claude Code skill that generates a minimal, mechanically enforced doc
-system for agent-driven projects - and retrofits the legacy system away.
-
-## The problem, twice
-
-The first version of this skill solved "CLAUDE.md grows without limit" by splitting facts
-into files (rules, plan, ledger, changelog) with per-file byte budgets and a
-lint. Measured after weeks of real agent use across 7 repos, that system had
-failed in a more interesting way: a 5-day-old app carried 468 KB of docs,
-71% of its commits touched doc files, its always-loaded set was ~105 KB, its
-only advisory lint check had been ignored 42 runs straight, and each decision
-was recorded in four places - which is four chances to disagree, and they did.
-Meanwhile its four hard-failing checks were obeyed same-day, every time.
-
-This version keeps what worked (mechanical enforcement, the trend log) and deletes the
-rest.
+A Claude Code skill that generates a small, mechanically enforced doc system
+for agent-driven projects, and migrates repos off the old
+PLAN/LEDGER/CHANGELOG scaffold.
 
 ## Principles
 
-- **One fact, one home.** Design → `docs/design/DESIGN.md` (owner-approved
-  edits only) · behavior → tests · active task state → `TODO.md` · finished
-  rows → `DONE.md` · rejections → `docs/SETTLED.md` · stories → commit message
-  bodies. Git is the history - there is no CHANGELOG, no LEDGER, no PLAN, and
-  the lint forbids them.
-- **Cold files absorb; they do not rewrite.** A finished row moves into
-  `DONE.md` verbatim - single line, no What/Why/Evidence block, 300-byte
-  ceiling, all lint-enforced. That shape is what stops an archive becoming
-  the 258 KB changelog nobody read.
-- **Enforcement ladder.** deny-hook > test > lint check > CLAUDE.md rule >
-  `docs/agent/` note. A prose rule is last-resort debt; the healthy rule
-  count trends *down* as lessons graduate into tests and hooks.
-- **Every check hard-fails at commit.** Advisory checks are banned: measured
-  agents ignore warnings and obey exit codes.
-- **Hot cap.** `CLAUDE.md` ≤ 6000 bytes, ≤ 25 rules, no imports. It is the
-  only always-loaded file, so it is the only capped file. Cold files
-  (`docs/agent/`, `docs/SETTLED.md`) are deliberately unpoliced - bytes
-  landing there instead of the hot set is the system working.
+- One fact, one home. Design lives in `docs/design/DESIGN.md` (owner-approved
+  edits only), behavior in tests, active tasks in `TODO.md`, finished rows in
+  `DONE.md`, rejections in `docs/SETTLED.md`, stories in commit message
+  bodies. Git is the history: no CHANGELOG, LEDGER, or PLAN files, and the
+  lint fails any commit that adds one.
+- A new lesson lands at the first rung that can hold it: deny-hook, then
+  test, then lint check, then a CLAUDE.md rule, then a `docs/agent/` note.
+  Prose rules are the last resort, and the rule count should fall over time
+  as lessons turn into tests and hooks.
+- Every check fails the commit. There are no warnings.
+- `CLAUDE.md` is the only always-loaded file, so it is the only capped one:
+  6000 bytes, 25 rules, no imports. Cold files (`docs/agent/`,
+  `docs/SETTLED.md`, `DONE.md`) are uncapped.
 
 ## What it generates
 
 | File | Purpose |
 |---|---|
-| `CLAUDE.md` | The contract: product line, commands & layout, stack, ≤25 R-rules, pointers |
-| `TODO.md` | Active work only ([todo]/[partial]/[in-progress]) - read every session |
-| `DONE.md` | Finished rows, moved verbatim from `TODO.md`. Append-only, never read wholesale, so it costs no context |
-| `docs/SETTLED.md` | The record of "no": owner-rejected proposals and withdrawn findings, one Don't-line each, so cold audits stop re-raising them |
-| `docs/design/DESIGN.md` | The single design source of truth; edits land only with `[design-approved]` in the commit message |
-| `docs/agent/*.md` | On-demand activity guides: device/QA lore plus the matrix of which environments are proven, release steps plus what is already set up. Read before that kind of work |
+| `CLAUDE.md` | The contract: product line, commands and layout, stack, up to 25 R-rules, pointers |
+| `TODO.md` | Active work ([todo]/[partial]/[in-progress]), read every session |
+| `DONE.md` | Finished rows, moved verbatim from `TODO.md`; append-only, never read wholesale |
+| `docs/SETTLED.md` | Owner-rejected proposals and withdrawn findings, one Don't-line each |
+| `docs/design/DESIGN.md` | The design source of truth; edits land only with `[design-approved]` in the commit message |
+| `docs/agent/*.md` | Activity guides read before that kind of work: device QA lore, the environments-proven matrix, release steps and setup |
 | `AGENTS.md` | Three lines for other harnesses |
-| `scripts/doc-lint.sh` | 10 hard-failing checks + a CSV trend row per run |
-| `.githooks/pre-commit`, `.githooks/commit-msg` | The commit gate - installed with `git config core.hooksPath .githooks` |
+| `scripts/doc-lint.sh` | The lint plus a CSV trend row per run |
+| `.githooks/pre-commit`, `.githooks/commit-msg` | The commit gate, installed with `git config core.hooksPath .githooks` |
 
 ## The lint
 
-All checks hard-fail: cap + no imports · rules grammar and cap · SETTLED
-grammar · no done-rows in TODO · TODO marker grammar · DONE.md row shape ·
-forbidden legacy files · every referenced path exists · required sections present
-+ no unfilled tokens. The commit-msg hook adds the design gate. Each check maps to a failure observed in the field -
-the map is in `references/methodology.md`.
+`scripts/doc-lint.sh` runs from `.githooks/pre-commit` on every commit and
+fails it on: CLAUDE.md over cap or using imports, a broken rules section, a
+done marker left in TODO.md, a malformed TODO, DONE, or SETTLED row, a
+legacy file, a referenced path that does not exist, a missing required
+section, or an unfilled template token. The commit-msg hook blocks changes
+under `docs/design/` unless the message contains `[design-approved]`.
 
-`docs/doc-lint-log.csv` gets one row per run (staged into the commit by the
-hook): sizes, rule count, cap value, and whether the commit touched docs.
-That trend is the system's only outcome measurement - rule count and
-docs-touched share should fall, and a cap bump is a visible event, not a
-silent loosening.
+Each run appends a row to `docs/doc-lint-log.csv` with sizes, rule count,
+cap value, and whether the commit touched docs. The trend is how you judge
+the system: rule count and the share of commits touching docs should fall,
+and a cap raise shows up as a changed `rules_cap` value.
 
 ## Using it
 
-Say "set up project docs" on a new repo, or run it on a repo carrying a legacy scaffold
-(PLAN/LEDGER/CHANGELOG) to migrate: the retrofit triages old ledger
-rows into tests, rules, SETTLED lines, or deletion - with batched owner
-approval at every destructive step. Everything deleted stays in git.
+Say "set up project docs" on a new repo. On a repo with a legacy scaffold it
+runs the migration instead. On a repo already using this system it offers to
+refresh drifted scripts and templates. Every overwrite and deletion is a
+checkbox you approve; declined items are left alone.
 
-Tests: `sh tests/run-tests.sh` (19 checks, including an end-to-end hook test
-in a throwaway repo).
+Tests: `sh tests/run-tests.sh` (19 checks, including a hook test in a
+throwaway repo).
 
 ## License
 
