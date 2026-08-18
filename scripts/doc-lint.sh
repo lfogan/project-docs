@@ -50,8 +50,8 @@ if [ -f CLAUDE.md ]; then
     {
       if (incmt) { if (index($0, "-->")) incmt = 0; next }
       if ($0 ~ /^[[:space:]]*$/) next
+      if ($0 ~ /^R[0-9]+: /) { n++; if (index($0, "<!--") && !index($0, "-->")) incmt = 1; next }
       if (index($0, "<!--")) { if (!index($0, "-->")) incmt = 1; next }
-      if ($0 ~ /^R[0-9]+: /) { n++; next }
       print "doc-lint: non-R line in Rules section (grammar R<n>: ...): " substr($0, 1, 60)
     }
     END { if (n > cap) print "doc-lint: " n " R-lines exceed the cap (" cap ") - retire one to add one" }

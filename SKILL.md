@@ -46,8 +46,8 @@ CHANGELOG*.md, scripts/doc-lint.sh.
      with the `GATED_PATHS=` line excluded (a Step 1 cap override or Q6
      gated-path list is sanctioned customization, not drift; report the
      current values, never a finding); list files the current skill
-     generates that are missing (DONE.md is the common one - older
-     deployments predate it); flag doc header comments contradicting current
+     generates that are missing (DONE.md and .gitattributes are the common
+     ones - older deployments predate them); flag doc header comments contradicting current
      templates (a TODO.md header still saying done rows are deleted). Offer
      each finding as its own item. A script/hook refresh is a verbatim
      recopy EXCEPT the cap and GATED_PATHS lines, which keep the deployed
@@ -103,9 +103,16 @@ Always: CLAUDE.md, AGENTS.md, TODO.md, DONE.md, docs/SETTLED.md,
 scripts/doc-lint.sh (verbatim copy from this skill's scripts/, then apply any
 owner cap override), .githooks/pre-commit and .githooks/commit-msg (verbatim
 copies from scripts/hooks/, then apply the Q6 `GATED_PATHS` answer to
-commit-msg), and .claude/commands/lint-skip.md (verbatim from
+commit-msg), .claude/commands/lint-skip.md (verbatim from
 templates/LINT-SKIP-COMMAND.template.md - the owner's one-commit skip valve;
-agents never create its marker or invoke it).
+agents never create its marker or invoke it), and .gitattributes (verbatim
+from templates/GITATTRIBUTES.template; a repo with an existing .gitattributes
+gets the template's non-comment lines appended, skipping any already present).
+The .gitattributes matters on Windows checkouts: sh dies on a CRLF
+doc-lint.sh, and CRLF inflates the CLAUDE.md byte count. Retrofit only: if
+`git ls-files --eol | grep -q 'i/crlf'` hits, some files are committed CRLF
+and the new attributes will renormalize them - tell the owner before
+generating it.
 
 If a design surface exists: docs/design/DESIGN.md (assets vendored beside it).
 If Android: docs/agent/device-qa.md. If Q8 found external release state:

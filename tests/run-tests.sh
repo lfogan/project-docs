@@ -44,6 +44,11 @@ fresh; printf 'stray prose line\n' >> "$TMP/case/tmp.$$"; rm -f "$TMP/case/tmp.$
 sed -i '/^R7:/a this is not an R line' "$TMP/case/CLAUDE.md"
 run ""; expect "non-R line in Rules fails" 1 "non-R line"
 
+# 4b. an R-line with a trailing (closed) HTML comment still counts toward the
+#     cap - the template ships R3 in exactly this shape
+fresh; sed -i '/^R7:/a R8: Counted despite trailing comment - why <!-- conditional note -->' "$TMP/case/CLAUDE.md"
+run "RULES_CAP=7"; expect "commented R-line counts toward cap" 1 "exceed the cap"
+
 # 5. TODO drain - both marker spellings must be caught
 fresh; printf -- '- [x] finished thing\n' >> "$TMP/case/TODO.md"
 run ""; expect "done row in TODO fails ([x])" 1 "done row still in TODO.md"

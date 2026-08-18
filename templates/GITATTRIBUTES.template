@@ -1,0 +1,6 @@
+# project-docs - line-ending pins. Narrow by design: no repo-wide `* text=auto`
+# (adding that to an existing repo triggers renormalization churn).
+# sh dies on CRLF, so the lint and hooks must never check out as CRLF.
+*.sh text eol=lf
+.githooks/* text eol=lf
+*.md text eol=lf
