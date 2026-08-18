@@ -59,6 +59,7 @@ already answers.
 | 6 | Design surface? (handoff/mockups to vendor beside DESIGN.md, or seed text, or none) | `{{DESIGN_SEED}}` |
 | 7 | First task? | `{{FIRST_TASK}}` |
 | 8 | Does shipping involve state outside the repo (app store, signing keys, hosting, domains, accounts)? If yes: what is already set up, and what are the per-release steps? | `{{RELEASE_SETUP}}`, `{{RELEASE_STEPS}}` |
+| 9 | Which environments must this be proven against (devices, browsers, OS/runtime versions)? Seed every one named, using `➖` for those never run — the never-run rows are the point. | `{{COVERAGE_ROWS}}` |
 
 `{{PROJECT_NAME}}` comes from the repo/product name — never asked.
 
@@ -67,7 +68,11 @@ generated, in this order; no module → contribute nothing. The token must be
 deleted from the line when empty, leaving no gap.
 
 - Android (Q1) → docs/agent/device-qa.md from DEVICE-QA.template.md; bullet:
-  `- docs/agent/device-qa.md — read before any adb/device/emulator work.`
+  `- docs/agent/device-qa.md — read before any adb/device/emulator work; also the record of which environments are proven.`
+- Any other project with a real coverage surface (browsers, OS or runtime
+  versions, screen sizes) → docs/agent/environments.md from the same
+  template, keeping only its `## Environments proven` section; bullet:
+  `- docs/agent/environments.md — which environments are proven, and which have never been run.`
 - External release state (Q8 answered yes) → docs/agent/release.md from
   RELEASE.template.md; bullet:
   `- docs/agent/release.md — read before any release, store, or deploy work, and add a dated line there after completing setup git cannot show (keys, console state, accounts).`
@@ -140,6 +145,11 @@ preserves everything deleted.
    in docs/agent/release.md. DONE.md is never read, so an archived row alone
    will not be found when a release session needs it. Scan the v1 PLAN and
    CHANGELOG for these specifically — a release phase is where they hide.
+5b. **Coverage.** A v1 TARGETS.md becomes the `## Environments proven` table
+   in docs/agent/device-qa.md (or environments.md). Carry every row, and fold
+   the old "Coverage gaps" section in as `➖` rows rather than keeping a second
+   surface. Dates and results are external-world facts git cannot reconstruct
+   — losing them means re-running the tests.
 6. **Design.** docs/design/DESIGN.md seeded by the owner or from the handoff;
    existing handoff assets stay beside it under the same gate; v1
    docs/design/STATUS.md and its "historical baseline" doctrine retire with

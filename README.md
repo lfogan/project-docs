@@ -47,7 +47,7 @@ rest.
 | `DONE.md` | Finished rows, moved verbatim from `TODO.md`. Append-only, never read wholesale, so it costs no context |
 | `docs/SETTLED.md` | The record of "no": owner-rejected proposals and withdrawn findings, one Don't-line each, so cold audits stop re-raising them |
 | `docs/design/DESIGN.md` | The single design source of truth; edits land only with `[design-approved]` in the commit message |
-| `docs/agent/*.md` | On-demand activity guides (e.g. device QA lore), read before that kind of work |
+| `docs/agent/*.md` | On-demand activity guides: device/QA lore plus the matrix of which environments are proven, release steps plus what is already set up. Read before that kind of work |
 | `AGENTS.md` | Three lines for other harnesses |
 | `scripts/doc-lint.sh` | 7 hard-failing checks + a CSV trend row per run |
 | `.githooks/pre-commit`, `.githooks/commit-msg` | The commit gate — installed with `git config core.hooksPath .githooks` |
