@@ -144,8 +144,10 @@ preserves everything deleted.
 4. **SETTLED harvest.** Search legacy LEDGER + CHANGELOG for withdrawn findings,
    owner-rejected proposals, "do not re-raise" markers. Propose Don't-lines;
    owner multi-selects. Expect a handful, not dozens.
-5. **TODO and DONE.** TODO.md carries active work only: [Todo]/[In-Progress]
-   rows, [Partial] → a "verify <x>" row, Decisions Needed → Blocked on owner.
+5. **TODO and DONE.** TODO.md carries active work only. Legacy markers are
+   rewritten to the lint's lowercase vocabulary during the move - [Todo] →
+   [todo], [In-Progress] → [in-progress]; [Partial] → a "verify <x>" row
+   marked [partial]; Decisions Needed → Blocked on owner (no marker).
    Every [Done] row moves verbatim into DONE.md - one line each, in the legacy
    PLAN's own order, no rewriting or enrichment. A legacy PLAN cell over 300
    chars is trimmed to its task text (the evidence prose stays in git), which
