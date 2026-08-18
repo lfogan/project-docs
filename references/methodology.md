@@ -63,6 +63,7 @@ TODO row and rely on git. If no, it goes in the release record.
 | 3b DONE shape | the archive growing stories instead of rows |
 | 3c TODO markers | rows whose state the next session cannot tell |
 | 4 forbidden legacy files | CHANGELOG/LEDGER/PLAN growing back |
+| 6b coverage table | the environments record being emptied or deleted silently |
 | 5 paths resolve | pointers to files that do not exist |
 | 6 required sections | a generated CLAUDE.md missing its commands section |
 | 7 unfilled tokens | broken generation passing silently |
