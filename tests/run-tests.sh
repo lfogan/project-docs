@@ -43,6 +43,14 @@ run ""; expect "done row in TODO fails ([x])" 1 "done row still in TODO.md"
 fresh; printf -- '- shipped the thing [done 2026-08-17]\n' >> "$TMP/case/TODO.md"
 run ""; expect "done row in TODO fails ([done])" 1 "done row still in TODO.md"
 
+# 5t. TODO marker grammar: Now/Next rows need exactly one marker; Blocked rows
+#     are exempt (the clean fixture carries an unmarked Blocked row already).
+fresh; sed -i '/^## Now$/a - unmarked task' "$TMP/case/TODO.md"
+run ""; expect "markerless Now row fails" 1 "needs exactly one marker"
+
+fresh; sed -i '/^## Now$/a - confused task [todo] [partial]' "$TMP/case/TODO.md"
+run ""; expect "double-marked row fails" 1 "needs exactly one marker"
+
 # 5a. DONE.md shape: verbatim one-line rows only, never a changelog
 fresh; printf 'What: a long story about the change\n' >> "$TMP/case/DONE.md"
 run ""; expect "changelog key in DONE.md fails" 1 "changelog key"

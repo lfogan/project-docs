@@ -49,15 +49,15 @@ rest.
 | `docs/design/DESIGN.md` | The single design source of truth; edits land only with `[design-approved]` in the commit message |
 | `docs/agent/*.md` | On-demand activity guides: device/QA lore plus the matrix of which environments are proven, release steps plus what is already set up. Read before that kind of work |
 | `AGENTS.md` | Three lines for other harnesses |
-| `scripts/doc-lint.sh` | 7 hard-failing checks + a CSV trend row per run |
+| `scripts/doc-lint.sh` | 10 hard-failing checks + a CSV trend row per run |
 | `.githooks/pre-commit`, `.githooks/commit-msg` | The commit gate — installed with `git config core.hooksPath .githooks` |
 
 ## The lint
 
 All checks hard-fail: cap + no imports · rules grammar and cap · SETTLED
-grammar · no done-rows in TODO · forbidden v1 files · every referenced path
-exists · required sections present + no unfilled tokens. The commit-msg hook
-adds the design gate. Each check maps to a failure observed in the field —
+grammar · no done-rows in TODO · TODO marker grammar · DONE.md row shape ·
+forbidden v1 files · every referenced path exists · required sections present
++ no unfilled tokens. The commit-msg hook adds the design gate. Each check maps to a failure observed in the field —
 the map is in `references/methodology.md`.
 
 `docs/doc-lint-log.csv` gets one row per run (staged into the commit by the
@@ -73,7 +73,7 @@ system (PLAN/LEDGER/CHANGELOG) to migrate: the retrofit triages old ledger
 rows into tests, rules, SETTLED lines, or deletion — with batched owner
 approval at every destructive step. Everything deleted stays in git.
 
-Tests: `sh tests/run-tests.sh` (17 checks, including an end-to-end hook test
+Tests: `sh tests/run-tests.sh` (19 checks, including an end-to-end hook test
 in a throwaway repo).
 
 ## License

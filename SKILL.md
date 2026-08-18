@@ -35,10 +35,20 @@ CHANGELOG*.md, scripts/doc-lint.sh.
 
 - **v1 files present** (PLAN.md, LEDGER.md, or CHANGELOG*.md) → Retrofit
   (section below).
-- **v2 files present** → maintenance only: never overwrite an existing file
-  without its own explicit go-ahead; consent gathered in ONE batched
-  multi-select (AskUserQuestion, each file its own item); generate only what
-  is missing.
+- **v2 files present** → maintenance. Two jobs, both offer-only — never
+  overwrite anything without its own explicit go-ahead, consent gathered in
+  ONE batched multi-select (AskUserQuestion, each item its own checkbox):
+  1. **Drift check.** The skill evolves after deployment, and a deployed copy
+     that lags is silent until a check misbehaves. Detect: byte-diff the
+     repo's scripts/doc-lint.sh, .githooks/pre-commit and .githooks/commit-msg
+     against this skill's copies (`diff -q`); list v2 files the current skill
+     generates that are missing (DONE.md is the common one — older
+     deployments predate it); flag doc header comments contradicting current
+     templates (a TODO.md header still saying done rows are deleted). Offer
+     each finding as its own item. A script/hook refresh is a verbatim
+     recopy; a header refresh touches the comment block only, never the
+     owner's rows.
+  2. **Generate what is missing**, each absent file its own consent item.
 - **Nothing** → greenfield, continue.
 
 ## Step 1 — interview (harvest first, then one batch)

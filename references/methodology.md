@@ -109,6 +109,7 @@ bump is a visible trend event rather than a silent loosening.
 | 2b SETTLED grammar | narrative creep — one-line Don'ts make stories impossible |
 | 3a TODO drain | the PLAN graveyard (62 stale [Partial] rows) in the file read every session |
 | 3b DONE.md shape | the archive turning into v1's 258 KB changelog, one enriched row at a time |
+| 3c TODO markers | markerless rows (the pilot retrofit imported them) — ambiguous to the next session: picked up? abandoned? half-done? |
 | 4 forbidden v1 files | regrowth from muscle memory / agents imitating repo history |
 | 5 paths resolve | dangling pointers (4 caught in 5 days; v1 itself shipped one) |
 | 6 required sections | pilot's CLAUDE.md had NO build/test commands and nothing noticed for 5 days |

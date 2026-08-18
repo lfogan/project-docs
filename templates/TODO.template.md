@@ -1,13 +1,16 @@
 # TODO — {{PROJECT_NAME}}
 
-<!-- Active work only: [todo] and [partial]. Read every session.
-     The moment a task is [done], MOVE its row verbatim to DONE.md in the
-     landing commit — cut and paste, no rewriting, no enrichment, no
-     "Evidence:" block. The lint fails a [done] row left here.
-     [partial] names the gap in the row itself; it beats a fake [done].
-     An [in-progress] row names its branch + next concrete action — a session
-     can die anytime, and unlanded work has no other home.
-     Owner decisions go under Blocked on owner, phrased as the question.
+<!-- Active work only. Read every session.
+     Marker grammar (lint-checked): every row under ## Now and ## Next carries
+     exactly one of [todo] · [partial] · [in-progress]. Rows under ## Blocked
+     on owner carry none — the section is their status, and each is phrased as
+     the question the owner must answer.
+     [partial] names its gap in the row. [in-progress] names its branch + next
+     concrete action — a session can die anytime, and unlanded work has no
+     other home.
+     The moment a row is done, MOVE it verbatim to DONE.md in the landing
+     commit — cut and paste, no rewriting, no enrichment. The lint fails a
+     done-marker left here.
      Setup that leaves no trace in the repo — store console state, signing
      keys, accounts, DNS, review submissions — also gets a dated line in
      docs/agent/release.md, which IS read before release work. DONE.md never

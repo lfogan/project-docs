@@ -106,6 +106,25 @@ if [ -f DONE.md ]; then
   emit "$out"
 fi
 
+# 3c. TODO markers: every task row under ## Now / ## Next carries exactly one
+#     state marker — [todo], [partial], or [in-progress]. Rows under
+#     ## Blocked on owner are exempt: the section is their status. A markerless
+#     row is ambiguous to the next session (picked up? abandoned? half-done?).
+if [ -f TODO.md ]; then
+  out=$(awk '
+    /^## / { sec = $0; next }
+    !/^- / { next }
+    sec ~ /^## (Now|Next)/ {
+      n = 0
+      if (index($0, "[todo]")) n++
+      if (index($0, "[partial]")) n++
+      if (index($0, "[in-progress]")) n++
+      if (n != 1) print "doc-lint: TODO row needs exactly one marker [todo]/[partial]/[in-progress]: " substr($0, 1, 60)
+    }
+  ' TODO.md)
+  emit "$out"
+fi
+
 # 4. Forbidden v1 files: history lives in git, decisions in docs/SETTLED.md,
 #    state in TODO.md. Agents imitate repo history — without this check the
 #    old files regrow from muscle memory.
