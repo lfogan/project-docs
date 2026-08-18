@@ -1,4 +1,4 @@
-# DONE — FixtureApp
+# DONE - FixtureApp
 
 <!-- frozen archive; rows arrive verbatim from TODO.md, never read wholesale -->
 

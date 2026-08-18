@@ -1,4 +1,4 @@
-# TODO — FixtureApp
+# TODO - FixtureApp
 
 ## Now
 
@@ -6,7 +6,7 @@
 
 ## Next
 
-- second task [partial] — gap: not verified on device
+- second task [partial] - gap: not verified on device
 
 ## Blocked on owner
 

@@ -1,8 +1,8 @@
 #!/bin/sh
-# project-docs v2 — design gate. docs/design/** is the owner's source of truth
+# project-docs v2 - design gate. docs/design/** is the owner's source of truth
 # (CLAUDE.md R3): landing a change there requires [design-approved] in the
 # commit message. This lives in commit-msg, not pre-commit, because only
-# commit-msg sees the message. Bypassing with --no-verify skips both hooks —
+# commit-msg sees the message. Bypassing with --no-verify skips both hooks -
 # that is R4, and the CSV trend makes a silent bypass visible as a missing row.
 if git diff --cached --name-only | grep -q '^docs/design/'; then
   if ! grep -qF "[design-approved]" "$1"; then

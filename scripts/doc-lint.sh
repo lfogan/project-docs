@@ -1,15 +1,15 @@
 #!/bin/sh
-# doc-lint.sh — project-docs v2 lint. Run from the repo root; the installed
+# doc-lint.sh - project-docs v2 lint. Run from the repo root; the installed
 # .githooks/pre-commit runs it on every commit.
 #
-# v2 contract: every check hard-fails. Advisory checks are banned by design —
+# v2 contract: every check hard-fails. Advisory checks are banned by design -
 # the v1 system's only warning was ignored on 42 consecutive runs while its
 # hard failures were fixed same-day (see references/methodology.md). A check
 # either blocks the commit or it does not exist.
 #
 # Env: BUDGET_CLAUDE (bytes, default 6000), RULES_CAP (default 25),
 #      DOC_LINT_LOG=0 disables the CSV row.
-# The design-approval gate lives in .githooks/commit-msg — it needs the commit
+# The design-approval gate lives in .githooks/commit-msg - it needs the commit
 # message, which pre-commit never sees. Everything else is here.
 BUDGET_CLAUDE="${BUDGET_CLAUDE:-6000}"
 RULES_CAP="${RULES_CAP:-25}"
@@ -24,12 +24,12 @@ emit() { # $1 = newline-separated findings, possibly empty
 }
 
 # 1. CLAUDE.md exists, fits the cap, imports nothing. The file IS the whole
-#    hot set — an @-import would smuggle bytes past the only measured number.
+#    hot set - an @-import would smuggle bytes past the only measured number.
 if [ -f CLAUDE.md ]; then
   sz=$(wc -c < CLAUDE.md | tr -d ' ')
-  [ "$sz" -gt "$BUDGET_CLAUDE" ] && note "CLAUDE.md over cap ($sz > $BUDGET_CLAUDE bytes) — retire or relocate before adding"
+  [ "$sz" -gt "$BUDGET_CLAUDE" ] && note "CLAUDE.md over cap ($sz > $BUDGET_CLAUDE bytes) - retire or relocate before adding"
   grep -nE '(^|[[:space:]])@([.~/]|[A-Za-z0-9_-]+/)' CLAUDE.md >/dev/null 2>&1 \
-    && note "CLAUDE.md uses @-imports — forbidden: the file is the whole hot set"
+    && note "CLAUDE.md uses @-imports - forbidden: the file is the whole hot set"
 else
   note "CLAUDE.md is missing"
 fi
@@ -49,12 +49,12 @@ if [ -f CLAUDE.md ]; then
       if ($0 ~ /^R[0-9]+: /) { n++; next }
       print "doc-lint: non-R line in Rules section (grammar R<n>: ...): " substr($0, 1, 60)
     }
-    END { if (n > cap) print "doc-lint: " n " R-lines exceed the cap (" cap ") — retire one to add one" }
+    END { if (n > cap) print "doc-lint: " n " R-lines exceed the cap (" cap ") - retire one to add one" }
   ' CLAUDE.md)
   emit "$out"
 fi
 
-# 2b. SETTLED grammar: every content line is one Don't-line —
+# 2b. SETTLED grammar: every content line is one Don't-line -
 #     starts "- Don't ", carries "settled YYYY-MM-DD (", ends ")".
 #     One-line entries make narrative structurally impossible.
 if [ -f docs/SETTLED.md ]; then
@@ -66,7 +66,7 @@ if [ -f docs/SETTLED.md ]; then
       ok = ($0 ~ /^- Don.t /) \
         && ($0 ~ / settled [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] \(/) \
         && ($0 ~ /\)$/)
-      if (!ok) print "doc-lint: SETTLED line breaks grammar (- Don'"'"'t <x> — settled YYYY-MM-DD (<why>)): " substr($0, 1, 60)
+      if (!ok) print "doc-lint: SETTLED line breaks grammar (- Don'"'"'t <x> - settled YYYY-MM-DD (<why>)): " substr($0, 1, 60)
     }
   ' docs/SETTLED.md)
   emit "$out"
@@ -74,7 +74,7 @@ fi
 
 # 3a. TODO drain: a finished row leaves TODO.md the moment it is marked, moved
 #     verbatim to DONE.md. A [done] row that lingers is the PLAN graveyard
-#     coming back — TODO.md is read every session, so its size is the cost.
+#     coming back - TODO.md is read every session, so its size is the cost.
 if [ -f TODO.md ]; then
   out=$(grep -nE '\[[xX]\]|\[[Dd]one|\[DONE' TODO.md 2>/dev/null \
     | sed 's/^/doc-lint: done row still in TODO.md (move it verbatim to DONE.md): /')
@@ -93,7 +93,7 @@ if [ -f DONE.md ]; then
       if ($0 ~ /^[[:space:]]*$/ || $0 ~ /^#/) next
       if (index($0, "<!--")) { if (!index($0, "-->")) incmt = 1; next }
       if ($0 ~ /^(What|Why|Evidence|Limits|Origin|Changes):/) {
-        print "doc-lint: DONE.md line " NR " uses a changelog key (" $1 ") — rows move verbatim, they do not grow a story"
+        print "doc-lint: DONE.md line " NR " uses a changelog key (" $1 ") - rows move verbatim, they do not grow a story"
         next
       }
       if ($0 !~ /^- /) {
@@ -101,13 +101,13 @@ if [ -f DONE.md ]; then
         next
       }
       if (length($0) > 300)
-        print "doc-lint: DONE.md line " NR " is " length($0) " chars (> 300) — move rows verbatim, do not enrich them"
+        print "doc-lint: DONE.md line " NR " is " length($0) " chars (> 300) - move rows verbatim, do not enrich them"
     }' DONE.md)
   emit "$out"
 fi
 
 # 3c. TODO markers: every task row under ## Now / ## Next carries exactly one
-#     state marker — [todo], [partial], or [in-progress]. Rows under
+#     state marker - [todo], [partial], or [in-progress]. Rows under
 #     ## Blocked on owner are exempt: the section is their status. A markerless
 #     row is ambiguous to the next session (picked up? abandoned? half-done?).
 if [ -f TODO.md ]; then
@@ -126,11 +126,11 @@ if [ -f TODO.md ]; then
 fi
 
 # 4. Forbidden v1 files: history lives in git, decisions in docs/SETTLED.md,
-#    state in TODO.md. Agents imitate repo history — without this check the
+#    state in TODO.md. Agents imitate repo history - without this check the
 #    old files regrow from muscle memory.
 for f in CHANGELOG*.md LEDGER.md PLAN.md DEVIATIONS.md \
          docs/CHANGELOG*.md docs/LEDGER.md docs/PLAN.md docs/DEVIATIONS.md; do
-  [ -f "$f" ] && note "forbidden v1 file: $f — history=git, decisions=docs/SETTLED.md, state=TODO.md"
+  [ -f "$f" ] && note "forbidden v1 file: $f - history=git, decisions=docs/SETTLED.md, state=TODO.md"
 done
 
 # 5. Paths referenced by CLAUDE.md resolve. A pointer to a missing file is the

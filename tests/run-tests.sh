@@ -7,7 +7,7 @@ TMP="$ROOT/tests/tmp"
 pass=0; failn=0
 result() { # $1 name, $2 ok(1/0), $3 detail
   if [ "$2" -eq 1 ]; then pass=$((pass+1)); echo "PASS $1"
-  else failn=$((failn+1)); echo "FAIL $1 — $3"; fi
+  else failn=$((failn+1)); echo "FAIL $1 - $3"; fi
 }
 fresh() { rm -rf "$TMP/case"; mkdir -p "$TMP"; cp -r "$ROOT/tests/fixtures/good" "$TMP/case"; }
 run() { # $1 extra env (may be empty). Sets OUT and RC.
@@ -36,7 +36,7 @@ fresh; printf 'stray prose line\n' >> "$TMP/case/tmp.$$"; rm -f "$TMP/case/tmp.$
 sed -i '/^R7:/a this is not an R line' "$TMP/case/CLAUDE.md"
 run ""; expect "non-R line in Rules fails" 1 "non-R line"
 
-# 5. TODO drain — both marker spellings must be caught
+# 5. TODO drain - both marker spellings must be caught
 fresh; printf -- '- [x] finished thing\n' >> "$TMP/case/TODO.md"
 run ""; expect "done row in TODO fails ([x])" 1 "done row still in TODO.md"
 
@@ -72,7 +72,7 @@ fresh; printf '# old\n' > "$TMP/case/CHANGELOG.md"
 run ""; expect "CHANGELOG.md presence fails" 1 "forbidden v1 file"
 
 # 7. dangling path
-fresh; sed -i 's|^- TODO.md — open work.|- TODO.md — open work.\n- docs/NOPE.md — ghost.|' "$TMP/case/CLAUDE.md"
+fresh; sed -i 's|^- TODO.md - open work.|- TODO.md - open work.\n- docs/NOPE.md - ghost.|' "$TMP/case/CLAUDE.md"
 run ""; expect "missing referenced path fails" 1 "missing path: docs/NOPE.md"
 
 # 8. required section
