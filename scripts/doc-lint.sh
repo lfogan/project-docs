@@ -143,7 +143,19 @@ done
 #    token of each Pointers bullet (when path-shaped), plus every docs/ or
 #    scripts/ token anywhere in the file (trailing glob stars stripped).
 if [ -f CLAUDE.md ]; then
-  cands=$( { awk '
+  # HTML comments are instructions to readers, not pointers - strip them
+  # first so a comment that NAMES a conditional path never fails the check.
+  stripped=$(awk '
+    incmt { i = index($0, "-->"); if (!i) next; $0 = substr($0, i+3); incmt = 0 }
+    {
+      while ((s = index($0, "<!--"))) {
+        rest = substr($0, s+4); e = index(rest, "-->")
+        if (e) { $0 = substr($0, 1, s-1) substr(rest, e+3) }
+        else   { $0 = substr($0, 1, s-1); incmt = 1; break }
+      }
+      print
+    }' CLAUDE.md)
+  cands=$( { printf '%s\n' "$stripped" | awk '
       /^## Pointers$/ { insec=1; next }
       insec && /^## / { insec=0 }
       insec && /^- / {
@@ -151,8 +163,8 @@ if [ -f CLAUDE.md ]; then
         split(line, a, " "); t = a[1]
         gsub(/\*+$/, "", t); sub(/[.,;:]$/, "", t)
         if (t ~ /^[A-Za-z0-9_.\/-]+$/ && (index(t, "/") || t ~ /\.md$/)) print t
-      }' CLAUDE.md
-      grep -oE '(docs|scripts)/[A-Za-z0-9_./-]*[A-Za-z0-9]' CLAUDE.md
+      }'
+      printf '%s\n' "$stripped" | grep -oE '(docs|scripts)/[A-Za-z0-9_./-]*[A-Za-z0-9]'
     } | sort -u)
   out=""
   for p in $cands; do
