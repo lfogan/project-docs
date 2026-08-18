@@ -1,11 +1,11 @@
-# project-docs (v2)
+# project-docs
 
 A Claude Code skill that generates a minimal, mechanically enforced doc
-system for agent-driven projects - and retrofits the v1 system away.
+system for agent-driven projects - and retrofits the legacy system away.
 
 ## The problem, twice
 
-v1 of this skill solved "CLAUDE.md grows without limit" by splitting facts
+The first version of this skill solved "CLAUDE.md grows without limit" by splitting facts
 into files (rules, plan, ledger, changelog) with per-file byte budgets and a
 lint. Measured after weeks of real agent use across 7 repos, that system had
 failed in a more interesting way: a 5-day-old app carried 468 KB of docs,
@@ -14,7 +14,7 @@ only advisory lint check had been ignored 42 runs straight, and each decision
 was recorded in four places - which is four chances to disagree, and they did.
 Meanwhile its four hard-failing checks were obeyed same-day, every time.
 
-v2 keeps what worked (mechanical enforcement, the trend log) and deletes the
+This version keeps what worked (mechanical enforcement, the trend log) and deletes the
 rest.
 
 ## Principles
@@ -56,7 +56,7 @@ rest.
 
 All checks hard-fail: cap + no imports · rules grammar and cap · SETTLED
 grammar · no done-rows in TODO · TODO marker grammar · DONE.md row shape ·
-forbidden v1 files · every referenced path exists · required sections present
+forbidden legacy files · every referenced path exists · required sections present
 + no unfilled tokens. The commit-msg hook adds the design gate. Each check maps to a failure observed in the field -
 the map is in `references/methodology.md`.
 
@@ -68,8 +68,8 @@ silent loosening.
 
 ## Using it
 
-Say "set up project docs" on a new repo, or run it on a repo carrying the v1
-system (PLAN/LEDGER/CHANGELOG) to migrate: the retrofit triages old ledger
+Say "set up project docs" on a new repo, or run it on a repo carrying a legacy scaffold
+(PLAN/LEDGER/CHANGELOG) to migrate: the retrofit triages old ledger
 rows into tests, rules, SETTLED lines, or deletion - with batched owner
 approval at every destructive step. Everything deleted stays in git.
 

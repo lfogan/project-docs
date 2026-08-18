@@ -1,6 +1,6 @@
 # FixtureApp
 
-Tiny fixture project for the v2 doc-lint test harness.
+Tiny fixture project for the doc-lint test harness.
 
 ## Commands & Layout
 

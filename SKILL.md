@@ -1,12 +1,12 @@
 ---
 name: project-docs
-description: Use when starting a new project ("set up project docs", "scaffold project documentation") or retrofitting an existing repo - generates the v2 minimal doc system (CLAUDE.md contract ≤6KB/≤25 rules, TODO.md state, docs/SETTLED.md rejection record, owner-gated docs/design/DESIGN.md, hard-failing commit-gate lint) and migrates v1 scaffolds (PLAN/LEDGER/CHANGELOG) to v2.
+description: Use when starting a new project ("set up project docs", "scaffold project documentation") or retrofitting an existing repo - generates the minimal doc system (CLAUDE.md contract ≤6KB/≤25 rules, TODO.md state, docs/SETTLED.md rejection record, owner-gated docs/design/DESIGN.md, hard-failing commit-gate lint) and migrates old PLAN/LEDGER/CHANGELOG scaffolds.
 ---
 
-# project-docs v2 - minimal docs, mechanically enforced
+# project-docs - minimal docs, mechanically enforced
 
 Templates in `templates/`, lint in `scripts/doc-lint.sh`, git hooks in
-`scripts/hooks/`. Rationale and the v1 post-mortem: `references/methodology.md`
+`scripts/hooks/`. Rationale and the legacy post-mortem: `references/methodology.md`
 (read only when a design question comes up).
 
 Principles the generated system encodes - do not weaken them while filling:
@@ -24,7 +24,7 @@ Principles the generated system encodes - do not weaken them while filling:
 - **Enforcement ladder.** deny-hook > test > lint check > CLAUDE.md R-line >
   docs/agent/ note. A prose rule is last-resort debt; healthy rules_count
   trends down.
-- **Every check hard-fails at commit.** Advisory checks are banned (v1's only
+- **Every check hard-fails at commit.** Advisory checks are banned (the legacy system's only
   warning was ignored 42/42 runs while hard failures were fixed same-day).
 - **Hot cap.** CLAUDE.md ≤ 6000 bytes, ≤ 25 R-lines, no @-imports.
 
@@ -33,15 +33,15 @@ Principles the generated system encodes - do not weaken them while filling:
 Look for: CLAUDE.md, TODO.md, docs/SETTLED.md, AGENTS.md, PLAN.md, LEDGER.md,
 CHANGELOG*.md, scripts/doc-lint.sh.
 
-- **v1 files present** (PLAN.md, LEDGER.md, or CHANGELOG*.md) → Retrofit
+- **legacy files present** (PLAN.md, LEDGER.md, or CHANGELOG*.md) → Retrofit
   (section below).
-- **v2 files present** → maintenance. Two jobs, both offer-only - never
+- **doc-system files present** → maintenance. Two jobs, both offer-only - never
   overwrite anything without its own explicit go-ahead, consent gathered in
   ONE batched multi-select (AskUserQuestion, each item its own checkbox):
   1. **Drift check.** The skill evolves after deployment, and a deployed copy
      that lags is silent until a check misbehaves. Detect: byte-diff the
      repo's scripts/doc-lint.sh, .githooks/pre-commit and .githooks/commit-msg
-     against this skill's copies (`diff -q`); list v2 files the current skill
+     against this skill's copies (`diff -q`); list files the current skill
      generates that are missing (DONE.md is the common one - older
      deployments predate it); flag doc header comments contradicting current
      templates (a TODO.md header still saying done rows are deleted). Offer
@@ -123,7 +123,7 @@ Fill every `{{TOKEN}}` - the lint fails on leftovers. Verify:
    creates docs/doc-lint-log.csv - commit it; its trend is the system's only
    outcome measurement.
 
-## Retrofit - v1 → v2 (one session, one `docs-v2` commit)
+## Retrofit - v1 → v2 (one session, one `docs-migration` commit)
 
 Consent shape throughout: batched multi-select, each item independently
 checkable, ~10 items per question. Deletions are proposed, never silent; git
@@ -131,46 +131,46 @@ preserves everything deleted.
 
 1. **Baseline.** Record current sizes (CLAUDE.md, PLAN.md, LEDGER.md,
    CHANGELOG* totals, directive count) in the report - the before-numbers the
-   first v2 CSV row is read against.
+   first post-migration CSV row is read against.
 2. **Commands & Layout.** Derive fresh from inspection and confirm with the
-   owner. Do not assume the v1 file has this section - generated v1 files
+   owner. Do not assume the legacy file has this section - generated legacy files
    have shipped without it.
-3. **Rules triage.** From v1 Critical Constraints + Active LEDGER rows,
+3. **Rules triage.** From legacy Critical Constraints + Active LEDGER rows,
    classify each: already test-enforced → drop (the test is the record) ·
    testable but untested → TODO row "write <TestName>" · untestable AND
    default-violated → R-line candidate · history/superseded/copy-churn →
    drop. Owner multi-selects R-candidates; 7 seeds + approved ≤ 25.
    Calibration from the pilot repo: 77 active rows → expect 8-12 R-lines.
-4. **SETTLED harvest.** Search v1 LEDGER + CHANGELOG for withdrawn findings,
+4. **SETTLED harvest.** Search legacy LEDGER + CHANGELOG for withdrawn findings,
    owner-rejected proposals, "do not re-raise" markers. Propose Don't-lines;
    owner multi-selects. Expect a handful, not dozens.
 5. **TODO and DONE.** TODO.md carries active work only: [Todo]/[In-Progress]
    rows, [Partial] → a "verify <x>" row, Decisions Needed → Blocked on owner.
-   Every [Done] row moves verbatim into DONE.md - one line each, in the v1
-   PLAN's own order, no rewriting or enrichment. A v1 PLAN cell over 300
+   Every [Done] row moves verbatim into DONE.md - one line each, in the legacy
+   PLAN's own order, no rewriting or enrichment. A legacy PLAN cell over 300
    chars is trimmed to its task text (the evidence prose stays in git), which
    is the only editing permitted during the move.
    Additionally: done rows recording state OUTSIDE the repo (store console,
    signing keys, accounts, hosting, review submissions) also get a dated line
    in docs/agent/release.md. DONE.md is never read, so an archived row alone
-   will not be found when a release session needs it. Scan the v1 PLAN and
+   will not be found when a release session needs it. Scan the legacy PLAN and
    CHANGELOG for these specifically - a release phase is where they hide.
-5b. **Coverage.** A v1 TARGETS.md becomes the `## Environments proven` table
+5b. **Coverage.** A legacy TARGETS.md becomes the `## Environments proven` table
    in docs/agent/device-qa.md (or environments.md). Carry every row, and fold
    the old "Coverage gaps" section in as `➖` rows rather than keeping a second
    surface. Dates and results are external-world facts git cannot reconstruct
    - losing them means re-running the tests.
 6. **Design.** docs/design/DESIGN.md seeded by the owner or from the handoff;
-   existing handoff assets stay beside it under the same gate; v1
+   existing handoff assets stay beside it under the same gate; the legacy
    docs/design/STATUS.md and its "historical baseline" doctrine retire with
    the file.
-7. **Delete v1 files** (owner-approved batch): PLAN.md, LEDGER.md,
+7. **Delete legacy files** (owner-approved batch): PLAN.md, LEDGER.md,
    CHANGELOG*.md, docs/templates/bookkeeping-payload.md,
    docs/design/STATUS.md, scripts/doc-lint-hook.sh, and any Stop-hook entry
    in .claude/settings.json. Keep docs/notes/ if the owner wants the audit
    reports; they are cold.
-8. Generate the v2 set (Step 2), install hooks (Step 3), lint → exit 0
-   required, commit everything as `docs-v2`.
+8. Generate the generated set (Step 2), install hooks (Step 3), lint → exit 0
+   required, commit everything as `docs-migration`.
 
 ## Subagents
 

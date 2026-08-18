@@ -1,5 +1,5 @@
 #!/bin/sh
-# project-docs v2 - design gate. docs/design/** is the owner's source of truth
+# project-docs - design gate. docs/design/** is the owner's source of truth
 # (CLAUDE.md R3): landing a change there requires [design-approved] in the
 # commit message. This lives in commit-msg, not pre-commit, because only
 # commit-msg sees the message. Bypassing with --no-verify skips both hooks -

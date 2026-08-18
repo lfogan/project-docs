@@ -1,5 +1,5 @@
 #!/bin/sh
-# v2 lint + hook harness. Run from the skill root: sh tests/run-tests.sh
+# lint + hook harness. Run from the skill root: sh tests/run-tests.sh
 cd "$(dirname "$0")/.." || exit 1
 ROOT=$(pwd)
 LINT="$ROOT/scripts/doc-lint.sh"
@@ -67,9 +67,9 @@ fresh; printf -- '- Play signing key enrolled [done 2026-08-17]\n- [x] store lis
   >> "$TMP/case/docs/agent/device-qa.md"
 run ""; expect "done marks in docs/agent/ are allowed" 0 -
 
-# 6. forbidden v1 files
+# 6. forbidden legacy files
 fresh; printf '# old\n' > "$TMP/case/CHANGELOG.md"
-run ""; expect "CHANGELOG.md presence fails" 1 "forbidden v1 file"
+run ""; expect "CHANGELOG.md presence fails" 1 "forbidden legacy file"
 
 # 7. dangling path
 fresh; sed -i 's|^- TODO.md - open work.|- TODO.md - open work.\n- docs/NOPE.md - ghost.|' "$TMP/case/CLAUDE.md"

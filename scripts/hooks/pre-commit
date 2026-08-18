@@ -1,5 +1,5 @@
 #!/bin/sh
-# project-docs v2 - commit gate. Installed by: git config core.hooksPath .githooks
+# project-docs - commit gate. Installed by: git config core.hooksPath .githooks
 # Runs the doc lint; any finding blocks the commit. On a clean run the lint's
 # CSV trend row is staged so it rides inside this commit. On a failed run the
 # row stays unstaged and rides in the retry commit - deliberate: failure rows

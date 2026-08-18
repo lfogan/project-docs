@@ -1,10 +1,10 @@
-# project-docs v2 methodology - rationale and evidence
+# project-docs methodology - rationale and evidence
 
 Loaded on demand only. The generated files are the runtime authority.
 
-## The v1 post-mortem (why v2 is shaped like this)
+## The legacy post-mortem (why the system is shaped like this)
 
-v1 (CLAUDE.md + PLAN + LEDGER + CHANGELOG + extract/pointer lint) was measured
+The legacy system (CLAUDE.md + PLAN + LEDGER + CHANGELOG + extract/pointer lint) was measured
 across 7 live repos on 2026-08-17. The pilot repo (hard-graft, an Android app
 5 days old, 140 commits, 14.8k lines of Kotlin) showed:
 
@@ -19,19 +19,19 @@ across 7 live repos on 2026-08-17. The pilot repo (hard-graft, an Android app
 | Commits touching doc files | 99 of 140 (71%) |
 | Extracts duplicating an existing test | ≥5 (named ArchitectureTest/ContrastTest inline) |
 
-Conclusions carried into v2:
+Conclusions carried into now:
 
 1. **Advisory checks change nothing; hard-failing checks are obeyed same-day.**
-   Same agent, same week, both behaviors observed. v2 bans warnings.
+   Same agent, same week, both behaviors observed. The redesign bans warnings.
 2. **Per-file budgets get satisfied by relocation** (prune into CHANGELOG,
    rotate CHANGELOG into archives - the origin repo sat at 96%/99.7% of two
-   budgets, green, with 652 KB total). v2 caps the only thing that loads.
+   budgets, green, with 652 KB total). The redesign caps the only thing that loads.
 3. **A rule a test can enforce should be a test.** The repo already had the
    tests; the prose was a second copy that could (and did) drift.
 4. **Four homes per fact ⇒ documented precedence ladders and "knowingly
-   ahead of source" annotations.** v2: one fact, one home; nothing can
+   ahead of source" annotations.** now: one fact, one home; nothing can
    disagree.
-5. **Git cannot record what was declined.** The one irreplaceable v1 content
+5. **Git cannot record what was declined.** The one irreplaceable legacy content
    class was "raised and WITHDRAWN, do not re-raise" - cold audits re-raise
    settled findings forever without it. That class alone survives as
    docs/SETTLED.md.
@@ -56,7 +56,7 @@ commit" observation reads as a licence to log activity - questions answered,
 files explained - and the archive fills with things that were never tasks.
 State the entry rule, not the observation.
 
-The risk is precise, and it is not size: v1's CHANGELOG.md began as a list of
+The risk is precise, and it is not size: the legacy system's CHANGELOG.md began as a list of
 what happened and ended as 258 KB of What/Why/Evidence/Limits prose the owner
 described as "no one will ever read". A row that is rewritten on the way into
 DONE.md is that same file being reborn one entry at a time. So the move is
@@ -66,7 +66,7 @@ than merely discouraged - the same trick SETTLED.md's one-line grammar uses.
 
 DONE.md is deliberately uncapped. It has no drain (nothing un-finishes a
 task), but a cap on a never-read file would only force rotation, which is the
-relocation theater v1 was built on. Its growth is logged (`done_rows`) so the
+relocation theater the legacy system was built on. Its growth is logged (`done_rows`) so the
 trend is visible without a budget to game.
 
 ## The one thing the TODO drain would have lost
@@ -91,10 +91,10 @@ Yes → delete. No → it belongs in the release record.
 
 ## Budget provenance
 
-The v2 CLAUDE.md skeleton is ~2.7 KB. The genuinely hot residue of the pilot
+The CLAUDE.md skeleton is ~2.7 KB. The genuinely hot residue of the pilot
 repo - commands, stack one-liners, and the 8-12 rules that pass the admission
 test (untestable AND default-violated) - prices at ~4.5 KB. 6000 bytes is
-that plus headroom, and roughly 7× smaller than v1's 45,000 ceiling, which
+that plus headroom, and roughly 7× smaller than the legacy system's 45,000 ceiling, which
 was derived from an outlier and reachable by relocation. 25 R-lines is an
 alarm line, not a target; ~10 is the expected steady state. Overrides go in
 the generated doc-lint.sh and are logged per run (rules_cap column), so a
@@ -108,10 +108,10 @@ bump is a visible trend event rather than a silent loosening.
 | 2a rules grammar + cap | directive dilution (76→107 under an ignored warning) |
 | 2b SETTLED grammar | narrative creep - one-line Don'ts make stories impossible |
 | 3a TODO drain | the PLAN graveyard (62 stale [Partial] rows) in the file read every session |
-| 3b DONE.md shape | the archive turning into v1's 258 KB changelog, one enriched row at a time |
+| 3b DONE.md shape | the archive turning into the legacy system's 258 KB changelog, one enriched row at a time |
 | 3c TODO markers | markerless rows (the pilot retrofit imported them) - ambiguous to the next session: picked up? abandoned? half-done? |
-| 4 forbidden v1 files | regrowth from muscle memory / agents imitating repo history |
-| 5 paths resolve | dangling pointers (4 caught in 5 days; v1 itself shipped one) |
+| 4 forbidden legacy files | regrowth from muscle memory / agents imitating repo history |
+| 5 paths resolve | dangling pointers (4 caught in 5 days; the legacy lint itself shipped one) |
 | 6 required sections | pilot's CLAUDE.md had NO build/test commands and nothing noticed for 5 days |
 | 7 no unfilled tokens | broken generation passing silently |
 | commit-msg design gate | silent edits to the owner's design source of truth |
@@ -122,7 +122,7 @@ docs/doc-lint-log.csv, one row per lint run (the pre-commit hook stages the
 row into its commit). Healthy directions:
 
 - `rules_count` **down** - lessons graduating up the enforcement ladder.
-- `docs_touched` share of commits **down** - less ceremony (v1: 71%).
+- `docs_touched` share of commits **down** - less ceremony (legacy system: 71%).
 - `claude_bytes` flat, far under cap - a fresh contract near the cap on day
   one is diagnostic of a problem.
 - `settled_lines` up **slowly and only on owner "no"s**.

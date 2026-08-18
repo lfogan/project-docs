@@ -1,9 +1,9 @@
 #!/bin/sh
-# doc-lint.sh - project-docs v2 lint. Run from the repo root; the installed
+# doc-lint.sh - project-docs lint. Run from the repo root; the installed
 # .githooks/pre-commit runs it on every commit.
 #
-# v2 contract: every check hard-fails. Advisory checks are banned by design -
-# the v1 system's only warning was ignored on 42 consecutive runs while its
+# Contract: every check hard-fails. Advisory checks are banned by design -
+# the legacy system's only warning was ignored on 42 consecutive runs while its
 # hard failures were fixed same-day (see references/methodology.md). A check
 # either blocks the commit or it does not exist.
 #
@@ -82,7 +82,7 @@ if [ -f TODO.md ]; then
 fi
 
 # 3b. DONE.md stays an archive of rows, not a changelog. Rows arrive verbatim,
-#     one line each. The two things that turned v1's task list into 258 KB of
+#     one line each. The two things that turned the legacy system's task list into 258 KB of
 #     unread prose were multi-line entries and What/Why/Evidence/Limits keys,
 #     so both are rejected here. Length cap makes narrative impossible rather
 #     than merely discouraged.
@@ -125,12 +125,12 @@ if [ -f TODO.md ]; then
   emit "$out"
 fi
 
-# 4. Forbidden v1 files: history lives in git, decisions in docs/SETTLED.md,
+# 4. Forbidden legacy files: history lives in git, decisions in docs/SETTLED.md,
 #    state in TODO.md. Agents imitate repo history - without this check the
 #    old files regrow from muscle memory.
 for f in CHANGELOG*.md LEDGER.md PLAN.md DEVIATIONS.md \
          docs/CHANGELOG*.md docs/LEDGER.md docs/PLAN.md docs/DEVIATIONS.md; do
-  [ -f "$f" ] && note "forbidden v1 file: $f - history=git, decisions=docs/SETTLED.md, state=TODO.md"
+  [ -f "$f" ] && note "forbidden legacy file: $f - history=git, decisions=docs/SETTLED.md, state=TODO.md"
 done
 
 # 5. Paths referenced by CLAUDE.md resolve. A pointer to a missing file is the
@@ -166,7 +166,7 @@ if [ -f CLAUDE.md ]; then
   done
 fi
 
-# 7. No unfilled template tokens in any v2 doc file.
+# 7. No unfilled template tokens in any doc file.
 out=$(grep -n '{{[A-Za-z_]*}}' CLAUDE.md AGENTS.md TODO.md DONE.md docs/SETTLED.md \
       docs/design/DESIGN.md docs/agent/*.md /dev/null 2>/dev/null \
   | sed 's/^/doc-lint: unfilled template token: /')
