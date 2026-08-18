@@ -10,5 +10,9 @@
      multi-line entries — the lint rejects both, because that shape is exactly
      how a task list turns into a changelog nobody reads.
 
-     The story behind a task is in its commit; the code is in the tree. This
-     file answers one question only: was this task done, and roughly when. -->
+     Much of what lands here never produced a commit — a passing device walk,
+     an investigation that concluded no change was needed, a verification
+     pass, an audit that found nothing. For those the row is not a second copy
+     of anything: it is the ONLY record, so write it to stand alone. Name what
+     was concluded rather than pointing at a commit that does not exist.
+     Never rotate, trim, or summarise this file. It is meant to accumulate. -->

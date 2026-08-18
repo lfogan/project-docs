@@ -40,9 +40,23 @@ Conclusions carried into v2:
 
 The drain rule is what keeps TODO.md readable every session, but deletion and
 archival achieve that equally well: the cost that matters is the file that is
-READ, and DONE.md never is. Archiving buys a task-level index — "was this
-already attempted?" — that `git log` answers only if commits happen to be
-task-shaped, which they are not.
+READ, and DONE.md never is. What archiving buys is a whole class of work that
+would otherwise have NO record at all.
+
+"Git is the history" holds only for work that produces a commit. A large share
+of real agent work does not: a device walk that passes, an investigation
+concluding no change is needed, a verification pass, an audit that finds
+nothing, a question answered. Deleting those rows does not move the fact into
+git — it destroys it, and the same investigation gets commissioned again in a
+month. This is the same class as docs/agent/release.md (state git cannot show)
+but wider, and it is the primary reason DONE.md exists. A row is a second copy
+only when a commit exists behind it; for everything else it is the original.
+
+Two consequences. A row with no commit behind it must stand alone — name what
+was concluded, not "see the commit" — because there is nothing to follow. And
+DONE.md is never rotated, trimmed, or summarised: the owner's stated use
+includes reading the accumulated list as evidence of progress, which a
+periodically-pruned file cannot provide. Growth is the feature here.
 
 The risk is precise, and it is not size: v1's CHANGELOG.md began as a list of
 what happened and ended as 258 KB of What/Why/Evidence/Limits prose the owner
