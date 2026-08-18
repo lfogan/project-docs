@@ -183,6 +183,21 @@ if [ -f CLAUDE.md ]; then
   done
 fi
 
+# 6b. The coverage record stays real. Where a device-qa/environments file
+#     exists it must keep its "## Environments proven" section with at least
+#     one row - the table holds external-world facts git cannot reconstruct,
+#     and a deleted or emptied table is losing them silently.
+for f in docs/agent/device-qa.md docs/agent/environments.md; do
+  [ -f "$f" ] || continue
+  if ! grep -q '^## Environments proven' "$f"; then
+    note "$f lost its '## Environments proven' section - the coverage table is the point"
+  else
+    rows=$(awk '/^## Environments proven/{insec=1; next} insec && /^## /{insec=0}
+      insec && /^\|/ && $0 !~ /^\| *Target/ && $0 !~ /^\|-+/ && $0 !~ /^\|( *-+ *\|)+/ {n++} END{print n+0}' "$f")
+    [ "$rows" -ge 1 ] || note "$f coverage table has no rows - seed targets with ➖ rather than deleting them"
+  fi
+done
+
 # 7. No unfilled template tokens in any doc file.
 out=$(grep -n '{{[A-Za-z_]*}}' CLAUDE.md AGENTS.md TODO.md DONE.md docs/SETTLED.md \
       docs/design/DESIGN.md docs/agent/*.md /dev/null 2>/dev/null \

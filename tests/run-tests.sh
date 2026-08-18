@@ -83,6 +83,13 @@ run ""; expect "CHANGELOG.md presence fails" 1 "forbidden legacy file"
 fresh; sed -i 's|^- TODO.md - open work.|- TODO.md - open work.\n- docs/NOPE.md - ghost.|' "$TMP/case/CLAUDE.md"
 run ""; expect "missing referenced path fails" 1 "missing path: docs/NOPE.md"
 
+# 6b. coverage table enforcement: section required, at least one row
+fresh; sed -i '/^## Environments proven/,$d' "$TMP/case/docs/agent/device-qa.md"
+run ""; expect "deleted coverage section fails" 1 "lost its '## Environments proven' section"
+
+fresh; sed -i '/^| Fixture device/d; /^| API 34/d' "$TMP/case/docs/agent/device-qa.md"
+run ""; expect "emptied coverage table fails" 1 "coverage table has no rows"
+
 # 7b. paths inside HTML comments are not pointers - naming a missing
 #     conditional path in a comment must lint clean
 fresh; printf '<!-- when a design surface exists, add docs/design/GHOST.md here -->\n' >> "$TMP/case/CLAUDE.md"
