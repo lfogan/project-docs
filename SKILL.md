@@ -103,6 +103,12 @@ If a design surface exists: docs/design/DESIGN.md (assets vendored beside it).
 If Android: docs/agent/device-qa.md. If Q8 found external release state:
 docs/agent/release.md.
 
+Conditional lines in CLAUDE.template.md: when no design surface exists, delete
+R3 and the docs/design/DESIGN.md pointer bullet; when no docs/agent/ file was
+generated, delete the docs/agent/ pointer bullet. The lint fails on pointers
+to missing paths, so a kept line for an ungenerated file breaks the required
+greenfield exit 0.
+
 Fill every `{{TOKEN}}` - the lint fails on leftovers. Verify:
 `grep -c '{{' <file>` = 0 for each generated file.
 
