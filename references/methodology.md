@@ -37,9 +37,11 @@ walk, a verification pass, an audit that finds nothing), and the owner reads
 the accumulated list as a progress record, so DONE.md is never rotated,
 trimmed, or summarised.
 
-Two lint rules stop the archive from becoming a changelog: rows are single
-lines under 300 characters with no What/Why/Evidence keys, and nothing is
-written to DONE.md directly. A row arrives only by having been a TODO row.
+The lint stops the archive from becoming a changelog by shape: rows are
+single lines under 300 characters with no What/Why/Evidence keys. That rows
+arrive only by moving from TODO.md is convention the lint cannot see - the
+shape check makes violating it pointless, since a story-shaped entry fails
+either way.
 
 ## Work that completes outside the repo
 
@@ -53,6 +55,7 @@ TODO row and rely on git. If no, it goes in the release record.
 
 | Check | Prevents |
 |---|---|
+| 0 core files exist | the doc system being dismantled file by file |
 | 1 cap + no imports | unbounded growth of the always-loaded file |
 | 2a rules grammar + cap | rule sprawl, and prose smuggled into the rules section |
 | 2b SETTLED grammar | narrative growing where one-line entries belong |

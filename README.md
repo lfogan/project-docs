@@ -55,7 +55,7 @@ runs the migration instead. On a repo already using this system it offers to
 refresh drifted scripts and templates. Every overwrite and deletion is a
 checkbox you approve; declined items are left alone.
 
-Tests: `sh tests/run-tests.sh` (19 checks, including a hook test in a
+Tests: `sh tests/run-tests.sh` (the suite prints its own count, including a hook test in a
 throwaway repo).
 
 ## License

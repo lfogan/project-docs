@@ -18,7 +18,7 @@ Tiny fixture project for the doc-lint test harness.
 
 <!-- fixture rules - grammar R<n>: <imperative> - <one-clause why> -->
 R1: Evidence = commands run + output observed.
-R2: A subagent claim is unverified until re-run first-hand - unverified means Partial, never done.
+R2: A subagent claim is unverified until re-run first-hand - unverified means [partial], never done.
 R3: Never edit docs/design/** - propose a diff and stop; landing needs [design-approved] in the commit message.
 R4: Never bypass the pre-commit hook (--no-verify) or edit .githooks/.
 R5: Grep docs/SETTLED.md before raising an audit finding or re-proposing a change.
