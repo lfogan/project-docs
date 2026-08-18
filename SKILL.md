@@ -39,15 +39,18 @@ CHANGELOG*.md, scripts/doc-lint.sh.
   overwrite anything without its own explicit go-ahead, consent gathered in
   ONE batched multi-select (AskUserQuestion, each item its own checkbox):
   1. **Drift check.** The skill evolves after deployment, and a deployed copy
-     that lags is silent until a check misbehaves. Detect: byte-diff the
-     repo's scripts/doc-lint.sh, .githooks/pre-commit and .githooks/commit-msg
-     against this skill's copies (`diff -q`); list files the current skill
+     that lags is silent until a check misbehaves. Detect: diff the repo's
+     scripts/doc-lint.sh, .githooks/pre-commit and .githooks/commit-msg
+     against this skill's copies - for doc-lint.sh compare with the
+     `BUDGET_CLAUDE=`/`RULES_CAP=` default lines excluded (a Step 1 cap
+     override is sanctioned customization, not drift; report it as the
+     current cap, never as a finding); list files the current skill
      generates that are missing (DONE.md is the common one - older
      deployments predate it); flag doc header comments contradicting current
      templates (a TODO.md header still saying done rows are deleted). Offer
      each finding as its own item. A script/hook refresh is a verbatim
-     recopy; a header refresh touches the comment block only, never the
-     owner's rows.
+     recopy EXCEPT the cap lines, which keep the deployed values; a header
+     refresh touches the comment block only, never the owner's rows.
   2. **Generate what is missing**, each absent file its own consent item.
 - **Nothing** → greenfield, continue.
 
