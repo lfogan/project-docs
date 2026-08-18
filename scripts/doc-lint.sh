@@ -23,6 +23,13 @@ emit() { # $1 = newline-separated findings, possibly empty
   findings=$((findings + $(printf '%s\n' "$1" | grep -c .)))
 }
 
+# 0. The core set exists. Every later check is guarded by [ -f ] so it can
+#    run mid-generation, but in a committed repo an absent core file is not
+#    "nothing to check" - it is the doc system silently dismantled.
+for f in CLAUDE.md AGENTS.md TODO.md DONE.md docs/SETTLED.md; do
+  [ -f "$f" ] || note "core file missing: $f - the doc system is incomplete"
+done
+
 # 1. CLAUDE.md exists, fits the cap, imports nothing. The file IS the whole
 #    hot set - an @-import would smuggle bytes past the only measured number.
 if [ -f CLAUDE.md ]; then
@@ -30,8 +37,6 @@ if [ -f CLAUDE.md ]; then
   [ "$sz" -gt "$BUDGET_CLAUDE" ] && note "CLAUDE.md over cap ($sz > $BUDGET_CLAUDE bytes) - retire or relocate before adding"
   grep -nE '(^|[[:space:]])@([.~/]|[A-Za-z0-9_-]+/)' CLAUDE.md >/dev/null 2>&1 \
     && note "CLAUDE.md uses @-imports - forbidden: the file is the whole hot set"
-else
-  note "CLAUDE.md is missing"
 fi
 
 # 2a. Rules section: every content line is an R-line; R-lines <= cap.

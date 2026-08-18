@@ -25,6 +25,14 @@ expect() { # $1 name, $2 want_rc, $3 grep pattern or "-"
 # 1. clean fixture passes
 fresh; run ""; expect "clean fixture exits 0" 0 -
 
+# 1b. core files must exist - a deleted DONE.md is a dismantled system, not
+#     "nothing to check"
+fresh; rm -f "$TMP/case/DONE.md"
+run ""; expect "missing DONE.md fails" 1 "core file missing: DONE.md"
+
+fresh; rm -f "$TMP/case/docs/SETTLED.md"
+run ""; expect "missing SETTLED.md fails" 1 "core file missing: docs/SETTLED.md"
+
 # 2. byte cap
 fresh; run "BUDGET_CLAUDE=100"; expect "over-cap CLAUDE.md fails" 1 "over cap"
 
