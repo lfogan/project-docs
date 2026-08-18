@@ -100,7 +100,9 @@ visible trend event.
 Always: CLAUDE.md, AGENTS.md, TODO.md, DONE.md, docs/SETTLED.md,
 scripts/doc-lint.sh (verbatim copy from this skill's scripts/, then apply any
 owner cap override), .githooks/pre-commit and .githooks/commit-msg (verbatim
-copies from scripts/hooks/).
+copies from scripts/hooks/), and .claude/commands/lint-skip.md (verbatim from
+templates/LINT-SKIP-COMMAND.template.md - the owner's one-commit skip valve;
+agents never create its marker or invoke it).
 
 If a design surface exists: docs/design/DESIGN.md (assets vendored beside it).
 If Android: docs/agent/device-qa.md. If Q8 found external release state:

@@ -33,6 +33,7 @@ PLAN/LEDGER/CHANGELOG scaffold.
 | `AGENTS.md` | Three lines for other harnesses |
 | `scripts/doc-lint.sh` | The lint plus a CSV trend row per run |
 | `.githooks/pre-commit`, `.githooks/commit-msg` | The commit gate, installed with `git config core.hooksPath .githooks` |
+| `.claude/commands/lint-skip.md` | Owner-only `/lint-skip`: pass the NEXT commit despite findings, one commit, audited |
 
 ## The lint
 
@@ -47,6 +48,13 @@ Each run appends a row to `docs/doc-lint-log.csv` with sizes, rule count,
 cap value, and whether the commit touched docs. The trend is how you judge
 the system: rule count and the share of commits touching docs should fall,
 and a cap raise shows up as a changed `rules_cap` value.
+
+The gate has one valve: `/lint-skip` (or `DOC_LINT_SKIP=1 git commit ...`)
+lets the next commit pass with findings. The lint still runs, findings still
+print, and the CSV row records `exit=0` with `findings>0` - a combination a
+normal run cannot produce, so skips are self-auditing. The marker is one-shot;
+the following commit is fully gated. Owner-typed only, never an agent's move.
+Three skip rows in a row means a check is fighting the repo: fix the check.
 
 ## Using it
 

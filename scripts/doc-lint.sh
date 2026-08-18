@@ -204,6 +204,18 @@ out=$(grep -n '{{[A-Za-z_]*}}' CLAUDE.md AGENTS.md TODO.md DONE.md docs/SETTLED.
   | sed 's/^/doc-lint: unfilled template token: /')
 emit "$out"
 
+# Skip valve (owner-only). DOC_LINT_SKIP=1 - set by the pre-commit hook when
+# it consumes the one-shot .git/doc-lint-skip marker, or inline for a terminal
+# commit - lets THIS run exit 0 with findings. Checks still ran, findings
+# still printed, and the CSV row below logs exit=0 with findings>0: a
+# combination a normal run can never produce, so the log itself is the audit
+# trail. Three such rows in a row = a check is fighting the repo; fix the
+# check, not the gate.
+if [ "${DOC_LINT_SKIP:-0}" = "1" ] && [ "$fail" = "1" ]; then
+  echo "doc-lint: skip valve used - $findings finding(s) above NOT enforced this run; logged as exit=0"
+  fail=0
+fi
+
 # 8. Run log (never a finding). One row per run; the pre-commit hook stages it
 #    so the row rides inside the commit. Trend semantics: rules_count healthy
 #    DOWN (lessons graduating to tests/hooks), docs_touched share healthy DOWN

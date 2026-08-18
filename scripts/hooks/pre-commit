@@ -4,6 +4,17 @@
 # CSV trend row is staged so it rides inside this commit. On a failed run the
 # row stays unstaged and rides in the retry commit - deliberate: failure rows
 # are the trend that proves the gate works.
-sh scripts/doc-lint.sh || exit 1
+#
+# Skip valve: a one-shot marker at <git-dir>/doc-lint-skip (created by the
+# owner via /lint-skip, never by an agent) makes THIS commit pass with
+# findings. The marker is consumed here, so the very next commit is gated
+# again. The lint still runs and logs the skip (exit=0, findings>0 in the CSV).
+GD=$(git rev-parse --git-dir 2>/dev/null || echo .git)
+if [ -f "$GD/doc-lint-skip" ]; then
+  rm -f "$GD/doc-lint-skip"
+  DOC_LINT_SKIP=1 sh scripts/doc-lint.sh || exit 1
+else
+  sh scripts/doc-lint.sh || exit 1
+fi
 git add docs/doc-lint-log.csv 2>/dev/null
 exit 0

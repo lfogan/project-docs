@@ -107,6 +107,18 @@ run ""; expect "unfilled token fails" 1 "unfilled template token"
 fresh; printf -- '- Do add narrative here because reasons\n' >> "$TMP/case/docs/SETTLED.md"
 run ""; expect "bad SETTLED line fails" 1 "SETTLED line breaks grammar"
 
+# 10b. skip valve: findings print but exit 0; CSV logs exit=0 with findings>0
+fresh; printf -- '- [x] finished thing\n' >> "$TMP/case/TODO.md"
+run "DOC_LINT_SKIP=1"; expect "env skip passes with findings printed" 0 "skip valve used"
+
+fresh; printf -- '- [x] finished thing\n' >> "$TMP/case/TODO.md"
+OUT=$(cd "$TMP/case" && env DOC_LINT_SKIP=1 sh "$LINT" 2>&1); RC=$?
+ok=1; det=""
+[ "$RC" -eq 0 ] || { ok=0; det="exit=$RC"; }
+sig=$(awk -F, 'NR==2{print ($2==0 && $3>0) ? "yes" : "no"}' "$TMP/case/docs/doc-lint-log.csv" 2>/dev/null)
+[ "$sig" = "yes" ] || { ok=0; det="$det; csv row not exit=0/findings>0: $(sed -n 2p "$TMP/case/docs/doc-lint-log.csv" 2>/dev/null)"; }
+result "skip run logs the exit=0 findings>0 signature" "$ok" "$det"
+
 # 11. CSV row shape
 fresh
 OUT=$(cd "$TMP/case" && sh "$LINT" 2>&1); RC=$?
@@ -150,6 +162,32 @@ case $rc in
   3) result "hooks: gate + CSV-in-commit e2e" 0 "design edit committed WITHOUT token";;
   4) result "hooks: gate + CSV-in-commit e2e" 0 "design edit with token was blocked";;
   *) result "hooks: gate + CSV-in-commit e2e" 0 "setup failure rc=$rc";;
+esac
+
+# 13. skip marker e2e: marker passes ONE violating commit, is consumed, and
+#     the next violating commit is blocked again
+(
+  cd "$TMP/repo" || exit 9
+  printf -- '- [x] skipped-past thing\n' >> TODO.md
+  git add -A
+  git commit -qm "violating commit, no marker" 2>/dev/null && exit 1
+  : > "$(git rev-parse --git-dir)/doc-lint-skip"
+  git add -A
+  git commit -qm "violating commit, marker set" || exit 2
+  [ -f "$(git rev-parse --git-dir)/doc-lint-skip" ] && exit 3
+  echo "tweak" >> AGENTS.md
+  git add -A
+  git commit -qm "next violating commit" 2>/dev/null && exit 4
+  exit 0
+)
+rc=$?
+case $rc in
+  0) result "skip marker: one commit through, then gated again" 1 "";;
+  1) result "skip marker: one commit through, then gated again" 0 "violating commit passed WITHOUT marker";;
+  2) result "skip marker: one commit through, then gated again" 0 "marker did not let the commit through";;
+  3) result "skip marker: one commit through, then gated again" 0 "marker not consumed";;
+  4) result "skip marker: one commit through, then gated again" 0 "second violating commit passed - gate not restored";;
+  *) result "skip marker: one commit through, then gated again" 0 "setup failure rc=$rc";;
 esac
 
 echo "----"
