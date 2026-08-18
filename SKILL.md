@@ -123,7 +123,7 @@ Fill every `{{TOKEN}}` - the lint fails on leftovers. Verify:
    creates docs/doc-lint-log.csv - commit it; its trend is the system's only
    outcome measurement.
 
-## Retrofit - v1 → v2 (one session, one `docs-migration` commit)
+## Retrofit - migrating a legacy scaffold (one session, one `docs-migration` commit)
 
 Consent shape throughout: batched multi-select, each item independently
 checkable, ~10 items per question. Deletions are proposed, never silent; git
