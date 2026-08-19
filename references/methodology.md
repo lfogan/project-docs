@@ -31,11 +31,17 @@ logs the cap per run, so a raise is visible in the trend.
 ## TODO and DONE
 
 TODO.md is read every session, so it holds only active rows. A finished row
-moves to DONE.md verbatim in the landing commit. Archiving rather than
-deleting keeps a record for tasks that produce no commit (a passing device
-walk, a verification pass, an audit that finds nothing), and the owner reads
-the accumulated list as a progress record, so DONE.md is never rotated,
-trimmed, or summarised.
+moves to DONE.md verbatim in the landing commit. Where the task produced
+code, that is the commit carrying the work, or the last of several. Where
+it produced none, it is simply the next commit of any kind: bookkeeping
+never earns a commit of its own.
+
+Archiving rather than deleting keeps one complete record, in the owner's
+words, of everything done. Sharpest where a task produces no code (a
+passing device walk, a verification pass, an audit that finds nothing), but
+the rule is uniform: every finished row lands in DONE.md, whether or not
+git already shows the work. The owner reads the list as a progress record,
+so DONE.md is never rotated, trimmed, or summarised.
 
 The lint stops the archive from becoming a changelog by shape: rows are
 single lines under 300 characters with no What/Why/Evidence keys. That rows
@@ -47,9 +53,13 @@ either way.
 
 Store console state, signing keys, accounts, DNS, and review submissions
 leave no trace in git, so their record lives in docs/agent/release.md as
-dated lines that are never deleted. The test for where a fact belongs:
-could a stranger reading the repo see that it was done? If yes, delete the
-TODO row and rely on git. If no, it goes in the release record.
+dated lines that are never deleted. The row still moves to DONE.md like any
+other. release.md answers "where does the release stand" without
+reconstructing it from DONE.md. Such a task appears twice on purpose, as
+record in DONE.md and as status in release.md; not duplication to collapse.
+
+Git replaces the changelog, not TODO and DONE. That a stranger could read
+the work out of git is never a reason to skip the DONE.md row.
 
 ## What each check prevents
 
