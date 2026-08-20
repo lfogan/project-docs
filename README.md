@@ -13,7 +13,7 @@ PLAN/LEDGER/CHANGELOG scaffold.
   lint fails any commit that adds one.
 - A new lesson lands at the first rung that can hold it: deny-hook, then
   test, then lint check, then a CLAUDE.md rule, then a `docs/agent/` note.
-  Prose rules are the last resort, and the rule count should fall over time
+  Prose is the last resort, and the rule count should fall over time
   as lessons turn into tests and hooks.
 - Every check fails the commit. There are no warnings.
 - `CLAUDE.md` is the only always-loaded file, so it is the only capped one:
@@ -26,7 +26,7 @@ PLAN/LEDGER/CHANGELOG scaffold.
 |---|---|
 | `CLAUDE.md` | The contract: product line, commands and layout, stack, up to 25 R-rules, pointers |
 | `TODO.md` | Active work ([todo]/[partial]/[in-progress]), read every session |
-| `DONE.md` | Finished rows, moved verbatim from `TODO.md`; append-only, never read wholesale |
+| `DONE.md` | Finished rows, moved verbatim from `TODO.md`; append-only, never read wholesale by agents |
 | `docs/SETTLED.md` | Owner-rejected proposals and withdrawn findings, one Don't-line each |
 | `docs/design/DESIGN.md` | The design source of truth; edits land only with `[design-approved]` in the commit message |
 | `docs/agent/*.md` | Activity guides read before that kind of work: device QA lore, the environments-proven matrix, release steps and setup |
@@ -38,21 +38,25 @@ PLAN/LEDGER/CHANGELOG scaffold.
 ## The lint
 
 `scripts/doc-lint.sh` runs from `.githooks/pre-commit` on every commit and
-fails it on: CLAUDE.md over cap or using imports, a broken rules section, a
-done marker left in TODO.md, a malformed TODO, DONE, or SETTLED row, a
-legacy file, a referenced path that does not exist, a missing required
-section, or an unfilled template token. The commit-msg hook blocks changes
+fails it on: a deleted core file, CLAUDE.md over cap or using imports, a
+broken rules section, a done marker left in TODO.md, a malformed TODO,
+DONE, or SETTLED row, a legacy file, a referenced path that does not exist,
+a missing required section, an emptied coverage table, or an unfilled
+template token. The commit-msg hook blocks changes
 under `docs/design/` - and any design-gated code path listed on its
 `GATED_PATHS` line, e.g. an Android `/ui/theme/` package - unless the message
 contains `[design-approved]`. Design values living in code are the design;
 the gate follows the values.
 
-Each run appends a row to `docs/doc-lint-log.csv` with sizes, rule count,
-cap value, and whether the commit touched docs. The trend is how you judge
-the system: rule count and the share of commits touching docs should fall,
-and a cap raise shows up as a changed `rules_cap` value.
+The checks catch what one commit breaks. The system can still rot through
+commits that each pass: rules creeping up, CLAUDE.md swelling toward its
+cap. To make that visible, each run appends a row to
+`docs/doc-lint-log.csv` with sizes, rule count, cap value, and whether the
+commit touched docs. Rule count and the share of commits touching docs
+should fall over time, and a cap raise shows up as a changed `rules_cap`
+value.
 
-The gate has one valve: `/lint-skip` (or `DOC_LINT_SKIP=1 git commit ...`)
+The gate has one sanctioned valve: `/lint-skip` (or `DOC_LINT_SKIP=1 git commit ...`)
 lets the next commit pass with findings. The lint still runs, findings still
 print, and the CSV row records `exit=0` with `findings>0` - a combination a
 normal run cannot produce, so skips are self-auditing. The marker is one-shot;

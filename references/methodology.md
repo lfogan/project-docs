@@ -73,9 +73,9 @@ the work out of git is never a reason to skip the DONE.md row.
 | 3b DONE shape | the archive growing stories instead of rows |
 | 3c TODO markers | rows whose state the next session cannot tell |
 | 4 forbidden legacy files | CHANGELOG/LEDGER/PLAN growing back |
-| 6b coverage table | the environments record being emptied or deleted silently |
 | 5 paths resolve | pointers to files that do not exist |
 | 6 required sections | a generated CLAUDE.md missing its commands section |
+| 6b coverage table | the environments record being emptied or deleted silently |
 | 7 unfilled tokens | broken generation passing silently |
 | commit-msg design gate | design edits landing without owner approval |
 
@@ -92,5 +92,6 @@ bytes landing in cold files instead of CLAUDE.md is the intended direction.
 Two hooks installed via `git config core.hooksPath .githooks`: pre-commit
 runs every lint check and stages the CSV row; commit-msg holds the design
 gate, which needs the message. Nothing runs while editing; the owner chose
-commit-time only. `git commit --no-verify` skips both hooks: R4 forbids it,
-and a bypassed commit leaves a gap in the CSV.
+commit-time only. `git commit --no-verify` skips both hooks: R4, the generated
+rule against bypassing the hooks, forbids it, and a bypassed commit leaves
+a gap in the CSV.
